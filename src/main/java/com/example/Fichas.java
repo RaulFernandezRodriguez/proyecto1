@@ -8,6 +8,8 @@ public class Fichas {
     int x, y;
     int puntuacion;
     int movimientos;
+    static int games;
+    static int actualGame;
 
     public Fichas (char[][] tablero){
         this.tablero = tablero;
@@ -16,36 +18,22 @@ public class Fichas {
         this.movimientos = 0;
         this.puntuacion = 0;
     }
-
+//crear el juego una vez comprobada la entrada, hacer metodo de comprobar entrada
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        int numGames = scanner.nextInt();
-        scanner.nextLine(); // Consume the newline character after the number of games.
-
-        for (int gameNumber = 1; gameNumber <= numGames; gameNumber++) {
-            String gameInput = storeGame(scanner);
-            char[][] gameLines = gameBoard(gameInput);
-
-            // Determinar el tamaño del tablero de este juego.
-            int rows = gameLines.length;
-            int cols = gameLines[0].length;
-
-            char[][] board = new char[rows][cols];
-
-            play(board, 0, gameNumber+1);
-            //List<String> moves = new ArrayList<>();
-            //while (true) {
-            //checkBoard();
-            // Find and remove the largest group
-            //String[] group = findLargestGroup();
-                    //if (group == null) {
-                     //break;
-                    //}
-                    //remove(group);
-                    //movimientos++;
-
-            // Ahora tienes el tablero almacenado en 'board' para procesar este juego.
-            //}
+        games = scanner.nextInt();
+        if(games < 0){
+            System.out.println("Error, numero de juegos invalido");
+        }else{
+            actualGame = 1;
+            // Consume the newline character after the number of games.
+            while(actualGame <= games){            
+                scanner.nextLine(); 
+                String gameInput = storeGame(scanner);
+                char[][] board = gameBoard(gameInput);
+                play(board);
+                actualGame++;
+            }
         }
     }
 
@@ -75,18 +63,16 @@ public class Fichas {
                 board[i][j] = row.charAt(j);
             }
         }
-    
         return board;
     }
         
-    public static void play(char[][] board, int game){
+    public static void play(char[][] board){
         char[][] result = new char[20][5];
         searchBigGroups(board, 0, 0, result);
-        
-        printResult(board, result, game);
+        printResult(board, result);
     } 
 
-    public static int searchBigGroups(char[][] board, int x, int y, char[][] result){
+    public static void searchBigGroups(char[][] board, int x, int y, char[][] result){
         int[][] size = new int[board.length][board.length];
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board.length; j++){
@@ -102,7 +88,9 @@ public class Fichas {
                 }
             }
         }
-        removeLargestGroup(board, maxGroup, result);
+        // los grupos recuerda que no pueden ser menores de 2
+        if(maxGroup > 2)
+            removeLargestGroup(board, maxGroup, result);
     }
 
     public static int group(char[][] board, boolean[][] visited, int x, int y){
@@ -137,11 +125,11 @@ public class Fichas {
                 }
             }
         }
-        result[movimiento][0] = inicioX;
-        result[movimiento][1] = inicioY;
-        result[movimiento][2] = size[inicioX][inicioY];
-        result[movimiento][3] = board[inicioX][inicioY];
-        result[movimiento][5] = (result[movimiento][2] -2)*(result[movimiento][2] -2);
+        result[games][0] = (char) inicioX;
+        result[games][1] = (char) inicioY;
+        result[games][2] = (char) board[inicioX][inicioY];
+        result[games][3] = board[inicioX][inicioY];
+        result[games][5] = (char) ((int) (result[games][2] -2)*(result[games][2] -2));
         removeGroup(board, inicioX, inicioY);
         fixBoard(board);
     }
@@ -188,10 +176,16 @@ public class Fichas {
         }
     }
 
-    public static void printResult(char[][] board, char[][] result, int game){
-        System.out.println("Juego "+game+":");
-        for(int i = 0; i < result[].length; i++){
-            System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][0]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" puntos.");
+    public static void printResult(char[][] board, char[][] result){
+        System.out.println("Juego "+actualGame+":");        
+        int finalScore = 0;
+        for(int i = 0; i < result[0].length; i++){
+            if(result[i][4] == 1){
+                System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][0]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" punto.");
+            }else{
+                System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][0]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" puntos.");
+            }
+            finalScore = finalScore + result[i][4];
         }
         int remaining = 0;
         for(int i = 0; i < board.length; i++){
@@ -201,13 +195,14 @@ public class Fichas {
                 }
             }
         }
-        int finalScore = 0;
-        for(int i = 0; i < result[].length; i++){
-            finalScore = finalScore + result[i][4];
-        }
         if(remaining == 0){
             finalScore = finalScore + 1000;
         }
-        System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" fichas.");
+        if(remaining == 1){
+            System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" ficha.");
+        }else{
+            System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" fichas.");            
+        }
+
     }
 }
