@@ -31,7 +31,8 @@ public class Fichas {
                 scanner.nextLine(); 
                 String gameInput = storeGame(scanner);
                 char[][] board = gameBoard(gameInput);
-                play(board);
+                if(checkBoard(board))
+                    play(board);
                 actualGame++;
             }
         }
@@ -66,6 +67,17 @@ public class Fichas {
         return board;
     }
         
+    public static boolean checkBoard(char[][] board){
+        for(int i = 0; i < board.length; i++){
+            for(int j = 0; j < board.length; j++){
+                if(board[i][j] != 'R' && board[i][j] != 'V' && board[i][j] != 'A'){
+                    return false;
+                }                
+            }
+        }
+        return true;
+    }
+
     public static void play(char[][] board){
         char[][] result = new char[20][5];
         searchBigGroups(board, 0, 0, result);
