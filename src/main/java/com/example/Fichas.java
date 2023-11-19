@@ -102,8 +102,10 @@ public class Fichas {
             }
         }
         // los grupos recuerda que no pueden ser menores de 2
-        if(maxGroup > 2)
+        if(maxGroup > 2){
             removeLargestGroup(board, maxGroup, result);
+            searchBigGroups(board, maxGroup, y, result);
+        }
     }
 
     public static int group(char[][] board, boolean[][] visited, int x, int y){
