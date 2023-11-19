@@ -79,12 +79,13 @@ public class Fichas {
     }
 
     public static void play(char[][] board){
-        char[][] result = new char[20][5];
+        ArrayList<char[]> result = new ArrayList<char[]>();
+        //char[][] result = new char[20][5];
         searchBigGroups(board, 0, 0, result);
         printResult(board, result);
     } 
 
-    public static void searchBigGroups(char[][] board, int x, int y, char[][] result){
+    public static void searchBigGroups(char[][] board, int x, int y, ArrayList<char[]> result){
         int[][] size = new int[board.length][board.length];
         for(int i = 0; i < board.length; i++){
             for(int j = 0; j < board.length; j++){
@@ -123,7 +124,7 @@ public class Fichas {
         return groupSize;
     }
 
-    public static void removeLargestGroup(char[][] board, int group, char[][] result){
+    public static void removeLargestGroup(char[][] board, int group, ArrayList<char[]> result){
         int inicioX = 0, inicioY = 0;
         for(int i = board.length -1; i > 0; i--){
             for(int j = board.length -1; j > 0; j--){
@@ -137,11 +138,12 @@ public class Fichas {
                 }
             }
         }
-        result[games][0] = (char) inicioX;
-        result[games][1] = (char) inicioY;
-        result[games][2] = (char) board[inicioX][inicioY];
-        result[games][3] = board[inicioX][inicioY];
-        result[games][5] = (char) ((int) (result[games][2] -2)*(result[games][2] -2));
+        result.add(new char[] {(char) inicioX, (char) inicioY, (char) group,  board[inicioX][inicioY], (char) ((int) Math.pow(result.get(games)[2] -2, 2))}); // * (result.get) (result[games][2] -2)*(result[games][2] -2))});
+        // result[games][0] = ;
+        // result[games][1] = ;
+        // result[games][2] = 
+        // result[games][3] = ;
+        // result[games][5] = ;
         removeGroup(board, inicioX, inicioY);
         fixBoard(board);
     }
@@ -163,41 +165,51 @@ public class Fichas {
     }
 
     public static void fixBoard(char[][] board){
-        for(int i = 0; i < board.length; i++){
-            for(int j = 0; j < board.length; j++){
-                if(board[i+1][j] == '_'){
-                    board[i+1][j] = board[i][j];
-                    board[i][j] = '_';
+        for(int i = board.length-1; i >= 0; i--){
+            for(int j = board.length-1; j >= 0; j--){
+                if(board[i][j] == '_'){
+                    board[i][j] = board[i-1][j];
+                    board[i-1][j] = '_';
                 }
             }
         }
         boolean emptyCol;
-        for(int i = 0; i < board.length; i++){
+        for(int i = board.length-1; i >= 0; i--){
             emptyCol = true;
-            for(int j = 0; j < board.length; j++){
+            for(int j = board.length-1; j >= 0; j--){
                 if(board[j][i] != '_'){
                     emptyCol = false;
                 }
             }
             if(emptyCol == true){
-                for(int j = 0; j < board.length; j++){
-                    board[j][i] = board[j][i+1];
-                    board[j][i+1] = '_';
+                for(int j = board.length-1; j >= 0; j--){
+                    if(i+1 < board.length){
+                        board[j][i] = board[j][i+1];
+                        board[j][i+1] = '_';
+                    }
                 }
             }
         }
     }
 
-    public static void printResult(char[][] board, char[][] result){
+    public static void printResult(char[][] board, ArrayList<char[]> result){
         System.out.println("Juego "+actualGame+":");        
         int finalScore = 0;
-        for(int i = 0; i < result[0].length; i++){
-            if(result[i][4] == 1){
-                System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][0]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" punto.");
+        // for(int i = 0; i < result[0].length; i++){
+        //     if(result[i][4] == 1){
+        //         System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][1]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" punto.");
+        //     }else{
+        //         System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][1]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" puntos.");
+        //     }
+        //     finalScore = finalScore + result[i][4];
+        // }
+        for(int i = 0; i < 5; i++){
+            if(result.get(i)[4] == 1){
+                System.out.println("Movimiento "+(i+1)+" en ("+result.get(i)[0]+","+result.get(i)[1]+"): eliminó "+result.get(i)[2]+" fichas de color "+result.get(i)[3]+" y obtuvo "+result.get(i)[4]+" punto.");
             }else{
-                System.out.println("Movimiento "+(i+1)+" en ("+result[i][0]+","+result[i][0]+"): eliminó "+result[i][2]+" fichas de color "+result[i][3]+" y obtuvo "+result[i][4]+" puntos.");
+                System.out.println("Movimiento "+(i+1)+" en ("+result.get(i)[0]+","+result.get(i)[1]+"): eliminó "+result.get(i)[2]+" fichas de color "+result.get(i)[3]+" y obtuvo "+result.get(i)[4]+" puntos.");
             }
-            finalScore = finalScore + result[i][4];
+            finalScore = finalScore + result.get(i)[4];
         }
         int remaining = 0;
         for(int i = 0; i < board.length; i++){
@@ -215,6 +227,5 @@ public class Fichas {
         }else{
             System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" fichas.");            
         }
-
     }
 }
