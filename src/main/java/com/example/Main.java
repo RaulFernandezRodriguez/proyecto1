@@ -1,6 +1,7 @@
 package com.example;
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LinkedList;
@@ -75,32 +76,36 @@ public class Main {
         
     public static void play(Ficha[][] board){
         ArrayList<char[]> result = new ArrayList<char[]>();
-        searchMove(board, 0, 0, result);
+        searchMove(board, result);
         printResult(board, result);
     } 
 
 //Hacer este metodo recursivo para que vaya creando sub tableros hasta el final
 
-    public static void searchMove(Ficha[][] board, int x, int y, ArrayList<char[]> result){
+    public static void searchMove(Ficha[][] board, ArrayList<char[]> result){
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
         boolean[][] visited = new boolean[board.length][board.length];
+        Arrays.fill(visited, false);
         for(int i = board.length; i > 0; i--){
             for(int j = 0; j < board[0].length; j++){
-                groups.add(formGroup(board, visited, i, j));
+                if(visited[i][j] == false)
+                    groups.add(formGroup(board, visited, i, j));
             }
         }
-        for(int i = 0; i < board.length; i++){
+        Iterator<LinkedList<Ficha>> groupIterator = groups.iterator();
+        int i = 0;
+        while(groupIterator.hasNext()){
             int groupLength = 0;
             Iterator<Ficha> iterator = groups.get(i).iterator();
             while(iterator.hasNext()){
                 groupLength++;
             }
             if(groupLength >= 2 && groups.get(i) != null){
-                Ficha[][] copiaTablero = board;
+                Ficha[][] copiaTablero = copyBoard(board);
                 ArrayList<char[]> parcialResult = new ArrayList<char[]>();
                 removeGroup(copiaTablero, groups.get(i), parcialResult, groupLength);
-                //searchMove(copiaTablero, x, y, result);
             } 
+            i++;
         }
     }
 
@@ -126,6 +131,20 @@ public class Main {
         return null;
     }
 
+    public static Ficha[][] copyBoard (Ficha[][] boardOld){
+        int rows = boardOld.length;
+        int cols = boardOld[0].length;
+        Ficha[][] boardNew = new Ficha[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                Ficha current = boardOld[i][j];
+                Ficha copied = new Ficha(current.getColor(), current.getRow(), current.getCol());
+                boardNew[i][j] = copied;
+            }
+        }
+        return boardNew;
+    }
+
     public static void removeGroup(Ficha[][] board, LinkedList<Ficha> group, ArrayList<char[]> result, int length){
         Iterator<Ficha> iterator = group.iterator();
         while(iterator.hasNext()){
@@ -137,7 +156,7 @@ public class Main {
         int y = board[0].length - token.getCol();
         result.add(new char[] {(char) x, (char) y, (char) length,  board[x][y].getColor(), (char) ((int) Math.pow(result.get(games)[2] -2, 2))});
         fixBoard(board);
-        searchMove(board, , , result);
+        searchMove(board, result);
     }
         // problema con crear el resultado, al ser recursivo, tengo que ver como solo imprimir el correcto result
 
