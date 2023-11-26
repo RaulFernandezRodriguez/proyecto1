@@ -3,10 +3,10 @@ package com.example;
 import java.util.ArrayList;
 
 public class movesTree {
-    movesTree padre;
-    Ficha[][] estado;
-    ArrayList<Ficha[][]> hijos;
-    Result puntuacion;
+    private movesTree padre;
+    private Ficha[][] estado;
+    private ArrayList<movesTree> hijos;
+    private Result puntuacion;
 
     public movesTree(Ficha[][] estado, Result puntuacion, movesTree padre){
         this.estado = estado;
@@ -22,11 +22,22 @@ public class movesTree {
         this.padre = null;
     }
 
-    public ArrayList<Ficha[][]> getChilds(){
+    public Result getData(){
+        return puntuacion;
+    }
+
+    public void addChild(movesTree hijo) {
+        if (hijos == null) {
+            hijos = new ArrayList<>();
+        }
+        hijos.add(hijo);
+    }
+
+    public ArrayList<movesTree> getChilds() {
         return hijos;
     }
 
-    public Result getPoints(){
-        return puntuacion;
+    public Ficha[][] getBoard(){
+        return estado;
     }
 }

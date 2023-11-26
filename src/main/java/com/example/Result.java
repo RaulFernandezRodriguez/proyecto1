@@ -1,16 +1,15 @@
 package com.example;
 
-import java.util.List;
-
 public class Result {
     private int points;
-    private List<char[]> moves;
+    private int x, y;
     private char color;
     private int groupLength;
 
-    public Result(int points, List<char[]> moves, char color, int groupLength){
+    public Result(int points, int x, int y, char color, int groupLength){
         this.points = points;
-        this.moves = moves;
+        this.x = x;
+        this.y = y;
         this.color = color;
         this.groupLength = groupLength;
     }
@@ -19,8 +18,16 @@ public class Result {
         return points;
     }
 
-    public List<char[]> getMoves(){
-        return moves;
+    //public int[] getPosition(){
+        //return {x , y};
+    //}
+
+    public int getXPosition(){
+        return x;
+    }
+
+    public int getYPosition(){
+        return y;
     }
 
     public char getGroupColor(){
