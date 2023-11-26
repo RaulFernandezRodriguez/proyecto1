@@ -76,6 +76,7 @@ public class Main {
         
     public static void play(Ficha[][] board){
         ArrayList<char[]> result = new ArrayList<char[]>();
+        movesTree original = new movesTree(board);
         searchMove(board, result);
         printResult(board, result);
     } 
