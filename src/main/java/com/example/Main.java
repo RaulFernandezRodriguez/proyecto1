@@ -85,7 +85,7 @@ public class Main {
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
         boolean[][] visited = new boolean[board.length][board.length];
         for(int i = board.length; i > 0; i--){
-            for(int j = board[0].length; j > 0; j--){
+            for(int j = 0; j < board[0].length; j++){
                 groups.add(formGroup(board, visited, i, j));
             }
         }
