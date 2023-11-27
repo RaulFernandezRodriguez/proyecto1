@@ -74,14 +74,14 @@ public class Main {
     }
         
     public static void play(Ficha[][] board){
-        movesTree original = new movesTree(board);
+        MovesTree original = new MovesTree(board);
         searchMove(board, original);
         searchBestMoves(original);
     } 
 
 //Hacer este metodo recursivo para que vaya creando sub tableros hasta el final
 
-    public static void searchMove(Ficha[][] board, movesTree result){
+    public static void searchMove(Ficha[][] board, MovesTree result){
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
         boolean[][] visited = new boolean[board.length][board.length];
         Arrays.fill(visited, false);
@@ -143,7 +143,7 @@ public class Main {
         return boardNew;
     }
 
-    public static void removeGroup(Ficha[][] board, LinkedList<Ficha> group, movesTree result, int length){
+    public static void removeGroup(Ficha[][] board, LinkedList<Ficha> group, MovesTree result, int length){
         Iterator<Ficha> iterator = group.iterator();
         while(iterator.hasNext()){
             Ficha ficha = iterator.next();
@@ -153,7 +153,7 @@ public class Main {
         int x = board.length - token.getRow();
         int y = board[0].length - token.getCol();
         Result score = new Result((int) Math.pow(length-2, 2), x, y, token.getColor(), length);
-        movesTree subBoard = new movesTree(board, score, result);
+        MovesTree subBoard = new MovesTree(board, score, result);
         result.addChild(subBoard);
         //result.add(new char[] {(char) x, (char) y, (char) length,  board[x][y].getColor(), (char) ((int) Math.pow(result.get(games)[2] -2, 2))});
         fixBoard(board);
@@ -189,14 +189,15 @@ public class Main {
         }
     }
 
-    public static void searchBestMoves(movesTree root){
+    public static void searchBestMoves(MovesTree root){
         int[] maxScore = new int[1]; // Almacena la mejor puntuación encontrada
-        ArrayList<movesTree> bestPath = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
-        depthSearch(root, 0, new ArrayList<>(), maxScore, bestPath);
+        int[] maxRemainingTokens = new int[1]; // Almacena la menor cantidad de fichas restantes
+        ArrayList<MovesTree> bestPath = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
+        depthSearch(root, 0, 0, new ArrayList<>(), maxScore, maxRemainingTokens, bestPath);
         printResult(bestPath);
     }
     
-    private static void depthSearch(movesTree node, int currentScore, ArrayList<movesTree> currentPath, int[] maxScore, ArrayList<movesTree> bestPath) {
+    private static void depthSearch(MovesTree node, int currentScore, ArrayList<MovesTree> currentPath, int[] maxScore, ArrayList<MovesTree> bestPath) {
         if (node == null) {
             return;
         }
@@ -212,7 +213,7 @@ public class Main {
             }
         } else {
             // Seguimos explorando los hijos
-            for (movesTree child : node.getChilds()) {
+            for (MovesTree child : node.getChilds()) {
                 depthSearch(child, currentScore, currentPath, maxScore, bestPath);
             }
         }
@@ -220,10 +221,35 @@ public class Main {
         currentPath.remove(currentPath.size() - 1);
     }
 
-    public static void printResult(ArrayList<movesTree> path){
+    public static void depthSearch(MovesTree node, int currentScore, int remainingTokens, ArrayList<MovesTree> currentPath, int[] maxScore, int[] maxRemainingTokens, ArrayList<MovesTree> bestPath) {
+        if (node == null) {
+            return;
+        }
+        currentScore += node.getData().getPoints();
+        remainingTokens = node.getRemainingTokens(node.getBoard());
+        currentPath.add(node);
+        if (node.getChilds() == null || node.getChilds().isEmpty()) {
+            // Es un nodo hoja, evaluamos la puntuación actual considerando las fichas restantes
+            if (currentScore > maxScore[0] || (currentScore == maxScore[0] && remainingTokens < maxRemainingTokens[0])) {
+                // Actualizamos la mejor puntuación y su ruta asociada considerando las fichas restantes
+                maxScore[0] = currentScore;
+                maxRemainingTokens[0] = remainingTokens;
+                bestPath.clear();
+                bestPath.addAll(currentPath);
+            }
+        } else {
+            // Seguimos explorando los hijos
+            for (MovesTree child : node.getChilds()) {
+                depthSearch(child, currentScore, remainingTokens, new ArrayList<>(currentPath), maxScore, maxRemainingTokens, bestPath);
+            }
+        }
+        currentPath.remove(currentPath.size() - 1);
+    }
+
+    public static void printResult(ArrayList<MovesTree> path){
         System.out.println("Juego "+actualGame+":");        
         int finalScore = 0;
-        Iterator<movesTree> pathIterator = path.iterator();
+        Iterator<MovesTree> pathIterator = path.iterator();
         int movimiento = 0;
         while(pathIterator.hasNext()){
             Result data = path.get(movimiento).getData();
@@ -237,7 +263,7 @@ public class Main {
         }
         int remaining = 0;
         Ficha[][] finalBoard = null;
-        for (movesTree nodo : path) {
+        for (MovesTree nodo : path) {
             finalBoard = nodo.getBoard(); // Actualiza el tablero en cada iteración
         }
         for(int i = 0; i < finalBoard.length; i++){
