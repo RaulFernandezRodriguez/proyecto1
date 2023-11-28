@@ -18,10 +18,6 @@ public class Result {
         return points;
     }
 
-    //public int[] getPosition(){
-        //return {x , y};
-    //}
-
     public int getXPosition(){
         return x;
     }

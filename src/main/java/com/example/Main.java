@@ -22,15 +22,18 @@ public class Main {
                 scanner.nextLine(); 
                 String gameInput = storeGame(scanner);
                 Ficha[][] board = gameBoard(gameInput);
-                if(board != null)
+                if(board != null){
                     play(board);
+                }else{
+                    break;
+                } 
                 actualGame++;
             }
         }
         scanner.close();
     }
 
-    private static boolean valid(Ficha ficha){
+    public static boolean valid(Ficha ficha){
         if(ficha.getColor() == 'V' || ficha.getColor() == 'R' || ficha.getColor() == 'A'){
             return true;
         }else{
@@ -75,17 +78,15 @@ public class Main {
         
     public static void play(Ficha[][] board){
         MovesTree original = new MovesTree(board);
-        searchMove(board, original);
+        searchMoves(board, original);
         searchBestMoves(original);
     } 
 
-//Hacer este metodo recursivo para que vaya creando sub tableros hasta el final
-
-    public static void searchMove(Ficha[][] board, MovesTree result){
+    public static void searchMoves(Ficha[][] board, MovesTree treeNode){
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
         boolean[][] visited = new boolean[board.length][board.length];
         Arrays.fill(visited, false);
-        for(int i = board.length; i > 0; i--){
+        for(int i = board.length -1; i >= 0; i--){
             for(int j = 0; j < board[0].length; j++){
                 if(visited[i][j] == false)
                     groups.add(formGroup(board, visited, i, j));
@@ -99,9 +100,9 @@ public class Main {
             while(iterator.hasNext()){
                 groupLength++;
             }
-            if(groupLength >= 2 && groups.get(i) != null){
+            if(groupLength >= 2){
                 Ficha[][] copiaTablero = copyBoard(board);
-                removeGroup(copiaTablero, groups.get(i), result, groupLength);
+                removeGroup(copiaTablero, groups.get(i), treeNode, groupLength);
             } 
             i++;
         }
@@ -143,7 +144,7 @@ public class Main {
         return boardNew;
     }
 
-    public static void removeGroup(Ficha[][] board, LinkedList<Ficha> group, MovesTree result, int length){
+    public static void removeGroup(Ficha[][] board, LinkedList<Ficha> group, MovesTree treeNode, int groupLength){
         Iterator<Ficha> iterator = group.iterator();
         while(iterator.hasNext()){
             Ficha ficha = iterator.next();
@@ -152,14 +153,12 @@ public class Main {
         Ficha token = group.get(0);
         int x = board.length - token.getRow();
         int y = board[0].length - token.getCol();
-        Result score = new Result((int) Math.pow(length-2, 2), x, y, token.getColor(), length);
-        MovesTree subBoard = new MovesTree(board, score, result);
-        result.addChild(subBoard);
-        //result.add(new char[] {(char) x, (char) y, (char) length,  board[x][y].getColor(), (char) ((int) Math.pow(result.get(games)[2] -2, 2))});
+        Result score = new Result((int) Math.pow(groupLength-2, 2), x, y, token.getColor(), groupLength);
+        MovesTree subBoard = new MovesTree(board, score, treeNode);
+        treeNode.addChild(subBoard);
         fixBoard(board);
-        searchMove(board, subBoard);
+        searchMoves(board, subBoard);
     }
-        // problema con crear el resultado, al ser recursivo, tengo que ver como solo imprimir el correcto result
 
     public static void fixBoard(Ficha[][] board){
         for(int i = board.length-1; i >= 0; i--){
@@ -170,15 +169,8 @@ public class Main {
                 }
             }
         }
-        boolean emptyCol;
-        for(int i = board.length-1; i >= 0; i--){
-            emptyCol = true;
-            for(int j = board.length-1; j >= 0; j--){
-                if(board[j][i].getColor() != '_'){
-                    emptyCol = false;
-                }
-            }
-            if(emptyCol == true){
+        for(int i = board.length -1; i >= 0; i--){
+            if(board[board.length -1][i].getColor() == '_'){
                 for(int j = board.length-1; j >= 0; j--){
                     if(i+1 < board.length){
                         board[j][i] = board[j][i+1];
@@ -195,30 +187,6 @@ public class Main {
         ArrayList<MovesTree> bestPath = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
         depthSearch(root, 0, 0, new ArrayList<>(), maxScore, maxRemainingTokens, bestPath);
         printResult(bestPath);
-    }
-    
-    private static void depthSearch(MovesTree node, int currentScore, ArrayList<MovesTree> currentPath, int[] maxScore, ArrayList<MovesTree> bestPath) {
-        if (node == null) {
-            return;
-        }
-        currentScore += node.getData().getPoints();
-        currentPath.add(node);
-        if (node.getChilds() == null || node.getChilds().isEmpty()) {
-            // Es un nodo hoja, evaluamos la puntuación actual
-            if (currentScore > maxScore[0]) {
-                // Actualizamos la mejor puntuación y su ruta asociada
-                maxScore[0] = currentScore;
-                bestPath.clear();
-                bestPath.addAll(currentPath);
-            }
-        } else {
-            // Seguimos explorando los hijos
-            for (MovesTree child : node.getChilds()) {
-                depthSearch(child, currentScore, currentPath, maxScore, bestPath);
-            }
-        }
-        // Retrocedemos a un nivel superior en el árbol
-        currentPath.remove(currentPath.size() - 1);
     }
 
     public static void depthSearch(MovesTree node, int currentScore, int remainingTokens, ArrayList<MovesTree> currentPath, int[] maxScore, int[] maxRemainingTokens, ArrayList<MovesTree> bestPath) {

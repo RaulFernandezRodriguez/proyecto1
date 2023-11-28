@@ -4,13 +4,11 @@ public class Ficha {
     private char color;
     private int row;
     private int col;
-    //private boolean linked;
 
     public Ficha(char color, int row, int col) {
         this.color = color;
         this.row = row;
         this.col = col;
-        //this.linked = false;
     }
 
     public char getColor() {
@@ -36,12 +34,5 @@ public class Ficha {
     public void setCol(int col) {
         this.col = col;
     }
-
-    // public boolean isLinked(){
-    //     return linked;
-    // }
-    // public void link(){
-    //     this.linked = true;
-    // }
 }
 
