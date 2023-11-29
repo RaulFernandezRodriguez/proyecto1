@@ -229,25 +229,18 @@ public class Main {
             finalScore += data.getPoints();
             movimiento++;
         }
-        int remaining = 0;
-        Ficha[][] finalBoard = null;
+        MovesTree bestResult = null;
         for (MovesTree nodo : path) {
-            finalBoard = nodo.getBoard(); // Actualiza el tablero en cada iteración
+            bestResult = nodo; // Actualiza el tablero en cada iteración
         }
-        for(int i = 0; i < finalBoard.length; i++){
-            for(int j = 0; j < finalBoard[0].length; j++){
-                if(finalBoard[i][j].getColor() != '_'){
-                    remaining++;
-                }
-            }
-        }
-        if(remaining == 0){
+        int remainingTokens = bestResult.getRemainingTokens(bestResult.getBoard());
+        if(remainingTokens == 0){
             finalScore = finalScore + 1000;
         }
-        if(remaining == 1){
-            System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" ficha.");
+        if(remainingTokens == 1){
+            System.out.println("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
         }else{
-            System.out.println("Puntuación final: "+finalScore+", quedando "+remaining+" fichas.");            
+            System.out.println("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
         }
     }
 }
