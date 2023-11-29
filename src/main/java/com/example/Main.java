@@ -25,6 +25,7 @@ public class Main {
                 if(board != null){
                     play(board);
                 }else{
+                    System.out.println("Error en el juego " + actualGame);
                     break;
                 } 
                 actualGame++;
@@ -44,7 +45,7 @@ public class Main {
     // Función para leer el input de un juego y devolverlo como una cadena.
     private static String storeGame(Scanner scanner) {
         StringBuilder gameInput = new StringBuilder();
-        while (scanner.hasNext()) {
+         while (scanner.hasNextLine()) {
             String line = scanner.next().trim();
             if (line.isEmpty()) {
                 break; // Fin del juego actual.
