@@ -13,13 +13,14 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         games = scanner.nextInt();
+        scanner.nextLine();
         if(games < 0){
             System.out.println("Error, numero de juegos invalido");
         }else{
             actualGame = 1;
             // Consume the newline character after the number of games.
             while(actualGame <= games){            
-                scanner.nextLine(); 
+                //scanner.nextLine();
                 String gameInput = storeGame(scanner);
                 Ficha[][] board = gameBoard(gameInput);
                 if(board != null){
@@ -46,11 +47,11 @@ public class Main {
     private static String storeGame(Scanner scanner) {
         StringBuilder gameInput = new StringBuilder();
          while (scanner.hasNextLine()) {
-            String line = scanner.next().trim();
-            if (line.isEmpty()) {
+            String line = scanner.nextLine().trim();
+            if (line.isEmpty() || scanner.hasNextLine()) {
                 break; // Fin del juego actual.
             }
-            gameInput.append(line).append("\n");
+            gameInput.append(line).append("\n"); 
         }
         return gameInput.toString().trim(); // Eliminar el último carácter '\n'.
     }
@@ -86,11 +87,13 @@ public class Main {
     public static void searchMoves(Ficha[][] board, MovesTree treeNode){
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
         boolean[][] visited = new boolean[board.length][board.length];
-        Arrays.fill(visited, false);
+        for (boolean[] fila : visited)
+            Arrays.fill(fila, false);
+        //Arrays.fill(visited, 0, board.length -1 , false);
         for(int i = board.length -1; i >= 0; i--){
             for(int j = 0; j < board[0].length; j++){
                 if(visited[i][j] == false)
-                    groups.add(formGroup(board, visited, i, j));
+                    groups.add(formGroup(board, visited, i, j, board.length -1, board[0].length -1));
             }
         }
         Iterator<LinkedList<Ficha>> groupIterator = groups.iterator();
@@ -109,22 +112,22 @@ public class Main {
         }
     }
 
-    public static LinkedList<Ficha> formGroup(Ficha[][] board, boolean[][] visited, int x, int y){
+    public static LinkedList<Ficha> formGroup(Ficha[][] board, boolean[][] visited, int x, int y, int rowLength, int colLength){
         visited[x][y] = true;
         LinkedList<Ficha> thisGroup = new LinkedList<>();
         thisGroup.add(board[x][y]);
         if(valid(board[x][y])){
-            if(board[x][y].getColor() == board[x][y+1].getColor() && visited[x][y+1] == false){
-                thisGroup.addAll(formGroup(board, visited, x, y+1));
+            if(y+1 <= colLength && board[x][y].getColor() == board[x][y+1].getColor() && visited[x][y+1] == false){
+                thisGroup.addAll(formGroup(board, visited, x, y+1, rowLength, colLength));
             }
-            if(board[x][y].getColor() == board[x][y-1].getColor() && visited[x][y-1] == false){
-                thisGroup.addAll(formGroup(board, visited, x, y-1));
+            if(y-1 >= 0 && board[x][y].getColor() == board[x][y-1].getColor() && visited[x][y-1] == false){
+                thisGroup.addAll(formGroup(board, visited, x, y-1, rowLength, colLength));
             }
-            if(board[x][y].getColor() == board[x+1][y].getColor() && visited[x+1][y] == false){
-                thisGroup.addAll(formGroup(board, visited, x+1, y));
+            if(x+1 <= rowLength && board[x][y].getColor() == board[x+1][y].getColor() && visited[x+1][y] == false){
+                thisGroup.addAll(formGroup(board, visited, x+1, y, rowLength, colLength));
             }
-            if(board[x][y].getColor() == board[x-1][y].getColor() && visited[x-1][y] == false){
-                thisGroup.addAll(formGroup(board, visited, x-1, y));
+            if(x-1 >= 0 && board[x][y].getColor() == board[x-1][y].getColor() && visited[x-1][y] == false){
+                thisGroup.addAll(formGroup(board, visited, x-1, y, rowLength, colLength));
             }
             return thisGroup;
         }
