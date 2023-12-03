@@ -12,15 +12,13 @@ public class Main {
 //crear el juego una vez comprobada la entrada, hacer metodo de comprobar entrada
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        games = scanner.nextInt();
-        scanner.nextLine();
+        games = Integer.parseInt(scanner.nextLine());
+        scanner.nextLine();// Consume the newline character after the number of games.
         if(games < 0){
             System.out.println("Error, numero de juegos invalido");
         }else{
             actualGame = 1;
-            // Consume the newline character after the number of games.
             while(actualGame <= games){            
-                //scanner.nextLine();
                 String gameInput = storeGame(scanner);
                 Ficha[][] board = gameBoard(gameInput);
                 if(board != null){
@@ -48,7 +46,7 @@ public class Main {
         StringBuilder gameInput = new StringBuilder();
          while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
-            if (line.isEmpty() || scanner.hasNextLine()) {
+            if (line.isEmpty() || !scanner.hasNextLine()) {
                 break; // Fin del juego actual.
             }
             gameInput.append(line).append("\n"); 
@@ -89,7 +87,6 @@ public class Main {
         boolean[][] visited = new boolean[board.length][board.length];
         for (boolean[] fila : visited)
             Arrays.fill(fila, false);
-        //Arrays.fill(visited, 0, board.length -1 , false);
         for(int i = board.length -1; i >= 0; i--){
             for(int j = 0; j < board[0].length; j++){
                 if(visited[i][j] == false)
@@ -97,18 +94,13 @@ public class Main {
             }
         }
         Iterator<LinkedList<Ficha>> groupIterator = groups.iterator();
-        int i = 0;
         while(groupIterator.hasNext()){
-            int groupLength = 0;
-            Iterator<Ficha> iterator = groups.get(i).iterator();
-            while(iterator.hasNext()){
-                groupLength++;
-            }
+            LinkedList<Ficha> currentGroup = groupIterator.next();
+            int groupLength = currentGroup.size();
             if(groupLength >= 2){
                 Ficha[][] copiaTablero = copyBoard(board);
-                removeGroup(copiaTablero, groups.get(i), treeNode, groupLength);
+                removeGroup(copiaTablero, currentGroup, treeNode, groupLength);
             } 
-            i++;
         }
     }
 
@@ -166,18 +158,18 @@ public class Main {
 
     public static void fixBoard(Ficha[][] board){
         for(int i = board.length-1; i >= 0; i--){
-            for(int j = board.length-1; j >= 0; j--){
-                if(board[i][j].getColor() == '_'){
-                    board[i][j] = board[i-1][j];
+            for(int j = board[0].length-1; j >= 0; j--){
+                if(board[i][j].getColor() == '_' && i-1 >= 0){
+                    board[i][j].setColor(board[i-1][j].getColor()); 
                     board[i-1][j].setColor('_');
                 }
             }
         }
-        for(int i = board.length -1; i >= 0; i--){
+        for(int i = board[0].length -1; i >= 0; i--){
             if(board[board.length -1][i].getColor() == '_'){
                 for(int j = board.length-1; j >= 0; j--){
                     if(i+1 < board.length){
-                        board[j][i] = board[j][i+1];
+                        board[j][i].setColor(board[j][i+1].getColor());
                         board[j][i+1].setColor('_');
                     }
                 }
