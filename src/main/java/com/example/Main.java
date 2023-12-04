@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class Main {
-    static int games;
-    static int actualGame;
+    private static int games;
+    private static int actualGame;
 // La asignacion de posiciones esta inversa, cuidado, la ficha mas abajo e izquierda es (1,1)
 //crear el juego una vez comprobada la entrada, hacer metodo de comprobar entrada
     public static void main(String[] args) {
