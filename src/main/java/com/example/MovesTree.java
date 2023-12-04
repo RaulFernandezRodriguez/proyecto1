@@ -19,7 +19,7 @@ public class MovesTree {
 
     public MovesTree(Ficha[][] estado){
         this.estado = estado;
-        this.hijos = null;
+        this.hijos = new ArrayList<>();
         this.puntuacion = null;
         this.padre = null;
     }

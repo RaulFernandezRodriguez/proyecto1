@@ -84,12 +84,13 @@ public class Main {
 
     public static void searchMoves(Ficha[][] board, MovesTree treeNode){
         ArrayList<LinkedList<Ficha>> groups = new ArrayList<>();
-        boolean[][] visited = new boolean[board.length][board.length];
+        boolean[][] visited = new boolean[board.length][board[0].length];
         for (boolean[] fila : visited)
             Arrays.fill(fila, false);
         for(int i = board.length -1; i >= 0; i--){
             for(int j = 0; j < board[0].length; j++){
-                if(visited[i][j] == false)
+                if(visited[i][j] == false && valid(board[i][j]))      
+                    //visited[i][j] = true;
                     groups.add(formGroup(board, visited, i, j, board.length -1, board[0].length -1));
             }
         }
@@ -105,9 +106,17 @@ public class Main {
     }
 
     public static LinkedList<Ficha> formGroup(Ficha[][] board, boolean[][] visited, int x, int y, int rowLength, int colLength){
-        visited[x][y] = true;
         LinkedList<Ficha> thisGroup = new LinkedList<>();
         thisGroup.add(board[x][y]);
+        visited[x][y] = true;
+        // if (x >= 0 && y >= 0 && x <= rowLength && y <= colLength && !visited[x][y] && valid(board[x][y])) {
+        //     visited[x][y] = true;
+        //     thisGroup.add(board[x][y]);
+        //     thisGroup.addAll(formGroup(board, visited, x, y + 1, rowLength, colLength));
+        //     thisGroup.addAll(formGroup(board, visited, x, y - 1, rowLength, colLength));
+        //     thisGroup.addAll(formGroup(board, visited, x + 1, y, rowLength, colLength));
+        //     thisGroup.addAll(formGroup(board, visited, x - 1, y, rowLength, colLength));
+        // }
         if(valid(board[x][y])){
             if(y+1 <= colLength && board[x][y].getColor() == board[x][y+1].getColor() && visited[x][y+1] == false){
                 thisGroup.addAll(formGroup(board, visited, x, y+1, rowLength, colLength));
@@ -121,9 +130,10 @@ public class Main {
             if(x-1 >= 0 && board[x][y].getColor() == board[x-1][y].getColor() && visited[x-1][y] == false){
                 thisGroup.addAll(formGroup(board, visited, x-1, y, rowLength, colLength));
             }
-            return thisGroup;
         }
-        return null;
+        return thisGroup;
+        //}
+        //return null;
     }
 
     public static Ficha[][] copyBoard (Ficha[][] boardOld){
@@ -189,7 +199,9 @@ public class Main {
         if (node == null) {
             return;
         }
-        currentScore += node.getData().getPoints();
+        if (node.getData() != null) { // Verifica si el nodo tiene datos asociados, no es la raiz
+            currentScore += node.getData().getPoints();
+        }
         remainingTokens = node.getRemainingTokens(node.getBoard());
         currentPath.add(node);
         if (node.getChilds() == null || node.getChilds().isEmpty()) {
@@ -214,13 +226,13 @@ public class Main {
         System.out.println("Juego "+actualGame+":");        
         int finalScore = 0;
         Iterator<MovesTree> pathIterator = path.iterator();
-        int movimiento = 0;
+        int movimiento = 1;
         while(pathIterator.hasNext()){
             Result data = path.get(movimiento).getData();
             if(data.getPoints() == 1){
-                System.out.println("Movimiento "+(movimiento+1)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.");  
+                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.");  
             }else{
-                System.out.println("Movimiento "+(movimiento+1)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
+                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
             }
             finalScore += data.getPoints();
             movimiento++;
