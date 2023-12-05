@@ -158,7 +158,7 @@ public class Main {
         }
         Ficha token = group.get(0);
         int x = board.length - token.getRow();
-        int y = board[0].length - token.getCol();
+        int y = token.getCol()+1;
         Result score = new Result((int) Math.pow(groupLength-2, 2), x, y, token.getColor(), groupLength);
         MovesTree subBoard = new MovesTree(board, score, treeNode);
         treeNode.addChild(subBoard);
@@ -178,7 +178,7 @@ public class Main {
         for(int i = board[0].length -1; i >= 0; i--){
             if(board[board.length -1][i].getColor() == '_'){
                 for(int j = board.length-1; j >= 0; j--){
-                    if(i+1 < board.length){
+                    if(i+1 < board[0].length){
                         board[j][i].setColor(board[j][i+1].getColor());
                         board[j][i+1].setColor('_');
                     }
@@ -226,13 +226,14 @@ public class Main {
         System.out.println("Juego "+actualGame+":");        
         int finalScore = 0;
         Iterator<MovesTree> pathIterator = path.iterator();
+        pathIterator.next();
         int movimiento = 1;
         while(pathIterator.hasNext()){
-            Result data = path.get(movimiento).getData();
+            Result data = pathIterator.next().getData();
             if(data.getPoints() == 1){
-                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.");  
+                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.");  
             }else{
-                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+","+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
+                System.out.println("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
             }
             finalScore += data.getPoints();
             movimiento++;
