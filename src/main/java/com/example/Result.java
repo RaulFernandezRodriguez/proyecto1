@@ -18,6 +18,10 @@ public class Result {
         return points;
     }
 
+    public void setPoints(int points){
+        this.points = points;
+    }
+
     public int getXPosition(){
         return x;
     }

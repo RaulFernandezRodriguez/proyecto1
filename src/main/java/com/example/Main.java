@@ -109,14 +109,6 @@ public class Main {
         LinkedList<Ficha> thisGroup = new LinkedList<>();
         thisGroup.add(board[x][y]);
         visited[x][y] = true;
-        // if (x >= 0 && y >= 0 && x <= rowLength && y <= colLength && !visited[x][y] && valid(board[x][y])) {
-        //     visited[x][y] = true;
-        //     thisGroup.add(board[x][y]);
-        //     thisGroup.addAll(formGroup(board, visited, x, y + 1, rowLength, colLength));
-        //     thisGroup.addAll(formGroup(board, visited, x, y - 1, rowLength, colLength));
-        //     thisGroup.addAll(formGroup(board, visited, x + 1, y, rowLength, colLength));
-        //     thisGroup.addAll(formGroup(board, visited, x - 1, y, rowLength, colLength));
-        // }
         if(valid(board[x][y])){
             if(y+1 <= colLength && board[x][y].getColor() == board[x][y+1].getColor() && visited[x][y+1] == false){
                 thisGroup.addAll(formGroup(board, visited, x, y+1, rowLength, colLength));
@@ -169,9 +161,13 @@ public class Main {
     public static void fixBoard(Ficha[][] board){
         for(int i = board.length-1; i >= 0; i--){
             for(int j = board[0].length-1; j >= 0; j--){
-                if(board[i][j].getColor() == '_' && i-1 >= 0){
-                    board[i][j].setColor(board[i-1][j].getColor()); 
-                    board[i-1][j].setColor('_');
+                if(board[i][j].getColor() == '_' && i-1 >= 0){ //hacer otro bucle para bajar todas las fichas al fondo
+                    for(int k = board.length-1; k >= 0; k--){
+                        if(board[k][j].getColor() != '_'){
+                            board[i][j].setColor(board[k][j].getColor()); 
+                            board[k][j].setColor('_'); 
+                        }
+                    }
                 }
             }
         }

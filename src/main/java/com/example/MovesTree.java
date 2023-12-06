@@ -28,6 +28,10 @@ public class MovesTree {
         return puntuacion;
     }
 
+    public MovesTree getFather(){
+        return padre;
+    }
+
     public void addChild(MovesTree hijo) {
         if (hijos == null) {
             hijos = new ArrayList<>();
