@@ -32,5 +32,13 @@ public class Ficha {
     public void setCol(int col) {
         this.col = col;
     }
+
+    public boolean valid(){
+        if(this.getColor() == 'V' || this.getColor() == 'R' || this.getColor() == 'A'){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
 

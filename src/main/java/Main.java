@@ -17,8 +17,13 @@ public class Main {
             System.out.println("Error, numero de juegos invalido");
         }else{
             actualGame = 1;
-            while(actualGame <= games){            
-                String gameInput = storeGame(scanner);
+            while(actualGame <= games){
+                String gameInput;
+                if(actualGame == games){
+                    gameInput = storeLastGame(scanner);
+                }else{
+                    gameInput = storeGame(scanner);
+                }   
                 Ficha[][] board = gameBoard(gameInput);
                 if(board != null){
                     play(board);
@@ -27,18 +32,19 @@ public class Main {
                     break;
                 } 
                 actualGame++;
+                if(actualGame == 1)
+                    scanner.nextLine();   
+
+                // Verificar si hay más líneas después del juego actual
+                if (!scanner.hasNext()) {
+                    break;
+                }
             }
         }
         scanner.close();
     }
 
-    public static boolean valid(Ficha ficha){
-        if(ficha.getColor() == 'V' || ficha.getColor() == 'R' || ficha.getColor() == 'A'){
-            return true;
-        }else{
-            return false;
-        }
-    }
+
     
     // Función para leer el input de un juego y devolverlo como una cadena.
     private static String storeGame(Scanner scanner) {
@@ -53,6 +59,18 @@ public class Main {
         return gameInput.toString().trim(); // Eliminar el último carácter '\n'.
     }
 
+    private static String storeLastGame(Scanner scanner) {
+        StringBuilder lastGameInput = new StringBuilder();
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine().trim();
+            if (line.isEmpty()) {
+                break; // Se encontró un espacio en blanco, final del último juego.
+            }
+            lastGameInput.append(line).append("\n");
+        }
+        return lastGameInput.toString().trim();
+    }
+
     private static Ficha[][] gameBoard(String gameInput) {
         String[] rows = gameInput.split("\n");
         int numRows = rows.length;
@@ -65,7 +83,7 @@ public class Main {
             String row = rows[i];
             for (int j = 0; j < numCols; j++) {
                 Ficha token = new Ficha(row.charAt(j), i, j);
-                if(valid(token) && row.length() == numCols){
+                if(token.valid() && row.length() == numCols){
                     board[i][j] = token;
                 }else{
                     return null;
@@ -88,7 +106,7 @@ public class Main {
             Arrays.fill(fila, false);
         for(int i = board.length -1; i >= 0; i--){
             for(int j = 0; j < board[0].length; j++){
-                if(visited[i][j] == false && valid(board[i][j]))      
+                if(visited[i][j] == false && board[i][j].valid())      
                     //visited[i][j] = true;
                     groups.add(formGroup(board, visited, i, j, board.length -1, board[0].length -1));
             }
@@ -108,7 +126,7 @@ public class Main {
         LinkedList<Ficha> thisGroup = new LinkedList<>();
         thisGroup.add(board[x][y]);
         visited[x][y] = true;
-        if(valid(board[x][y])){
+        if(board[x][y].valid()){
             if(y+1 <= colLength && board[x][y].getColor() == board[x][y+1].getColor() && visited[x][y+1] == false){
                 thisGroup.addAll(formGroup(board, visited, x, y+1, rowLength, colLength));
             }
@@ -186,12 +204,13 @@ public class Main {
     public static void searchBestMoves(MovesTree root){
         int[] maxScore = new int[1]; // Almacena la mejor puntuación encontrada
         int[] maxRemainingTokens = new int[1]; // Almacena la menor cantidad de fichas restantes
-        ArrayList<MovesTree> bestPath = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
-        depthSearch(root, 0, 0, new ArrayList<>(), maxScore, maxRemainingTokens, bestPath);
+        ArrayList<ArrayList<MovesTree>> bestPathsList = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
+        depthSearch(root, 0, 0, new ArrayList<>(), maxScore, maxRemainingTokens, bestPathsList);
+        ArrayList<MovesTree> bestPath = orderPaths(bestPathsList);
         printResult(bestPath);
     }
 
-    public static void depthSearch(MovesTree node, int currentScore, int remainingTokens, ArrayList<MovesTree> currentPath, int[] maxScore, int[] maxRemainingTokens, ArrayList<MovesTree> bestPath) {
+    public static void depthSearch(MovesTree node, int currentScore, int remainingTokens, ArrayList<MovesTree> currentPath, int[] maxScore, int[] maxRemainingTokens, ArrayList<ArrayList<MovesTree>> bestPathsList) {
         if (node == null) {
             return;
         }
@@ -211,18 +230,60 @@ public class Main {
                 currentScore += 1000;
             }
             if (isNewBestPath) {
-                maxScore[0] = currentScore;
-                maxRemainingTokens[0] = remainingTokens;
-                bestPath.clear();
-                bestPath.addAll(currentPath);
+                if (bestPathsList.isEmpty() || currentScore > maxScore[0]) {
+                    maxScore[0] = currentScore;
+                    maxRemainingTokens[0] = remainingTokens;
+                    bestPathsList.clear();
+                    bestPathsList.add(new ArrayList<>(currentPath));
+                } else if (currentScore == maxScore[0]) {
+                    bestPathsList.add(new ArrayList<>(currentPath));
+                }
             }
         } else {
             // Seguimos explorando los hijos
             for (MovesTree child : node.getChilds()) {
-                depthSearch(child, currentScore, remainingTokens, new ArrayList<>(currentPath), maxScore, maxRemainingTokens, bestPath);
+                depthSearch(child, currentScore, remainingTokens, new ArrayList<>(currentPath), maxScore, maxRemainingTokens, bestPathsList);
             }
         }
         currentPath.remove(currentPath.size() - 1);
+    }
+
+    public static ArrayList<MovesTree> orderPaths(ArrayList<ArrayList<MovesTree>> bestPathsList){
+        if (bestPathsList.isEmpty()) {
+            return null;
+        }
+        ArrayList<MovesTree> lexicographicallyFirst = bestPathsList.get(0);
+        for (int i = 1; i < bestPathsList.size(); i++) {
+            ArrayList<MovesTree> currentPath = bestPathsList.get(i);
+            if (orderPaths(currentPath, lexicographicallyFirst)) {
+                lexicographicallyFirst = currentPath;
+            }
+        }
+        return lexicographicallyFirst;
+    }
+
+    public static boolean orderPaths(ArrayList<MovesTree> path1, ArrayList<MovesTree> path2) {
+        for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
+            int compare = compareMoves(path1.get(i), path2.get(i));
+            if (compare != 0) {
+                return compare < 0;
+            }
+        }
+        return path1.size() < path2.size();
+    }
+
+    public static int compareMoves(MovesTree move1, MovesTree move2) {
+        Result data1 = move1.getData();
+        Result data2 = move2.getData();
+        int compareX = Integer.compare(data1.getXPosition(), data2.getXPosition());
+        if (compareX != 0) {
+            return compareX;
+        }
+        int compareY = Integer.compare(data1.getYPosition(), data2.getYPosition());
+        if (compareY != 0) {
+            return compareY;
+        }
+        return Integer.compare(data1.getPoints(), data2.getPoints());
     }
 
     public static void printResult(ArrayList<MovesTree> path){
@@ -254,6 +315,7 @@ public class Main {
         }else{
             System.out.println("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
         }
-        System.out.print("\n");
+        if(actualGame != games)
+            System.out.print("\n");
     }
 }
