@@ -1,5 +1,3 @@
-package com.example;
-
 public class Result {
     private int points;
     private int x, y;

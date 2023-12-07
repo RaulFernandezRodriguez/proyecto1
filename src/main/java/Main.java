@@ -1,4 +1,3 @@
-package com.example;
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -159,16 +158,17 @@ public class Main {
     }
 
     public static void fixBoard(Ficha[][] board){
-        for(int i = board.length-1; i >= 0; i--){
-            for(int j = board[0].length-1; j >= 0; j--){
-                if(board[i][j].getColor() == '_' && i-1 >= 0){ //hacer otro bucle para bajar todas las fichas al fondo
-                    for(int k = board.length-1; k >= 0; k--){
-                        if(board[k][j].getColor() != '_'){
-                            board[i][j].setColor(board[k][j].getColor()); 
-                            board[k][j].setColor('_'); 
-                        }
-                    }
+        for (int i = 0; i < board[0].length; i++) {
+            int currentRow = board.length - 1;
+            // Recorrer la columna desde abajo hacia arriba
+            for (int j = board.length - 1; j >= 0; j--) {
+                if (board[j][i].getColor() != '_') {
+                    // Si es diferente al carácter objetivo, desplazarlo hacia abajo
+                    board[currentRow--][i].setColor(board[j][i].getColor());
                 }
+            }
+            while (currentRow >= 0) {
+                board[currentRow--][i].setColor('_');
             }
         }
         for(int i = board[0].length -1; i >= 0; i--){
@@ -195,15 +195,22 @@ public class Main {
         if (node == null) {
             return;
         }
-        if (node.getData() != null) { // Verifica si el nodo tiene datos asociados, no es la raiz
+        if (node.getData() != null) {
             currentScore += node.getData().getPoints();
         }
         remainingTokens = node.getRemainingTokens(node.getBoard());
         currentPath.add(node);
         if (node.getChilds() == null || node.getChilds().isEmpty()) {
-            // Es un nodo hoja, evaluamos la puntuación actual considerando las fichas restantes
+            // Es un nodo hoja, evaluamos la puntuación actual y la cantidad de fichas restantes
+            boolean isNewBestPath = false;
             if (currentScore > maxScore[0] || (currentScore == maxScore[0] && remainingTokens < maxRemainingTokens[0])) {
-                // Actualizamos la mejor puntuación y su ruta asociada considerando las fichas restantes
+                isNewBestPath = true;
+            } else if (remainingTokens == 0) {
+                // Si quedan 0 fichas, sumar el bono extra de puntos
+                isNewBestPath = true;
+                currentScore += 1000;
+            }
+            if (isNewBestPath) {
                 maxScore[0] = currentScore;
                 maxRemainingTokens[0] = remainingTokens;
                 bestPath.clear();
@@ -247,5 +254,6 @@ public class Main {
         }else{
             System.out.println("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
         }
+        System.out.print("\n");
     }
 }
