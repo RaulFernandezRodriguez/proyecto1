@@ -12,10 +12,10 @@ public class Main {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         games = Integer.parseInt(scanner.nextLine());
-        scanner.nextLine();// Consume the newline character after the number of games.
-        if(games < 0){
+        if(games <= 0){
             System.out.println("Error, numero de juegos invalido");
         }else{
+            scanner.nextLine();// Consume the newline character after the number of games.
             actualGame = 1;
             while(actualGame <= games){
                 String gameInput;
