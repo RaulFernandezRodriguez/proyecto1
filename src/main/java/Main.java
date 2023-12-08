@@ -1,3 +1,5 @@
+
+
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,7 +15,7 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
         games = Integer.parseInt(scanner.nextLine());
         if(games <= 0){
-            System.out.println("Error, numero de juegos invalido");
+            //System.out.println("Error, numero de juegos invalido");
         }else{
             scanner.nextLine();// Consume the newline character after the number of games.
             actualGame = 1;
@@ -28,7 +30,7 @@ public class Main {
                 if(board != null){
                     play(board);
                 }else{
-                    System.out.println("Error en el juego " + actualGame);
+                    //System.out.println("Error en el juego " + actualGame);
                     break;
                 } 
                 actualGame++;
@@ -44,8 +46,26 @@ public class Main {
         scanner.close();
     }
 
+/**
+ * This method compares two data objects based on their X position, Y position, and points.
+ * It first compares the X positions. If they are not equal, it returns the result of the comparison.
+ * If the X positions are equal, it compares the Y positions. If they are not equal, it returns the result of the comparison.
+ * If both the X and Y positions are equal, it compares the points and returns the result.
+ *
+ * @param data1 The first data object to compare.
+ * @param data2 The second data object to compare.
+ * @return The result of the comparison. A negative integer, zero, or a positive integer as the first argument is less than, equal to, or greater than the second.
+ */
+// Existing method code here...
 
-    
+/**
+ * This method prints the result of a game.
+ * It iterates over a path of moves, calculating the final score and printing out each move.
+ * The output includes the move number, the position of the move, the number of chips eliminated, the color of the chips, and the points obtained.
+ *
+ * @param path An ArrayList of MovesTree objects representing the path of moves in the game.
+ */
+// Existing method code here...
     // Función para leer el input de un juego y devolverlo como una cadena.
     private static String storeGame(Scanner scanner) {
         StringBuilder gameInput = new StringBuilder();
@@ -141,8 +161,6 @@ public class Main {
             }
         }
         return thisGroup;
-        //}
-        //return null;
     }
 
     public static Ficha[][] copyBoard (Ficha[][] boardOld){
@@ -203,46 +221,34 @@ public class Main {
 
     public static void searchBestMoves(MovesTree root){
         int[] maxScore = new int[1]; // Almacena la mejor puntuación encontrada
-        int[] maxRemainingTokens = new int[1]; // Almacena la menor cantidad de fichas restantes
         ArrayList<ArrayList<MovesTree>> bestPathsList = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
-        depthSearch(root, 0, 0, new ArrayList<>(), maxScore, maxRemainingTokens, bestPathsList);
+        depthSearch(root, new ArrayList<>(), maxScore, bestPathsList);
         ArrayList<MovesTree> bestPath = orderPaths(bestPathsList);
         printResult(bestPath);
     }
 
-    public static void depthSearch(MovesTree node, int currentScore, int remainingTokens, ArrayList<MovesTree> currentPath, int[] maxScore, int[] maxRemainingTokens, ArrayList<ArrayList<MovesTree>> bestPathsList) {
+    public static void depthSearch(MovesTree node, ArrayList<MovesTree> currentPath, int[] maxScore, ArrayList<ArrayList<MovesTree>> bestPathsList) {
         if (node == null) {
             return;
         }
-        if (node.getData() != null) {
-            currentScore += node.getData().getPoints();
+        int currentScore = 0;
+        if(node.getData() != null){
+            currentScore = node.getTotalScore(); // Use the stored score of the node
         }
-        remainingTokens = node.getRemainingTokens(node.getBoard());
         currentPath.add(node);
-        if (node.getChilds() == null || node.getChilds().isEmpty()) {
-            // Es un nodo hoja, evaluamos la puntuación actual y la cantidad de fichas restantes
-            boolean isNewBestPath = false;
-            if (currentScore > maxScore[0] || (currentScore == maxScore[0] && remainingTokens < maxRemainingTokens[0])) {
-                isNewBestPath = true;
-            } else if (remainingTokens == 0) {
-                // Si quedan 0 fichas, sumar el bono extra de puntos
-                isNewBestPath = true;
-                currentScore += 1000;
-            }
-            if (isNewBestPath) {
-                if (bestPathsList.isEmpty() || currentScore > maxScore[0]) {
-                    maxScore[0] = currentScore;
-                    maxRemainingTokens[0] = remainingTokens;
-                    bestPathsList.clear();
-                    bestPathsList.add(new ArrayList<>(currentPath));
-                } else if (currentScore == maxScore[0]) {
-                    bestPathsList.add(new ArrayList<>(currentPath));
-                }
-            }
-        } else {
-            // Seguimos explorando los hijos
+    
+        // Check if it's a new best path
+        if (currentScore > maxScore[0]) {
+            maxScore[0] = currentScore;
+            bestPathsList.clear();
+            bestPathsList.add(new ArrayList<>(currentPath));
+        } else if (currentScore == maxScore[0]) {
+            bestPathsList.add(new ArrayList<>(currentPath));
+        }
+    
+        if (node.getChilds() != null) {
             for (MovesTree child : node.getChilds()) {
-                depthSearch(child, currentScore, remainingTokens, new ArrayList<>(currentPath), maxScore, maxRemainingTokens, bestPathsList);
+                depthSearch(child, new ArrayList<>(currentPath), maxScore, bestPathsList);
             }
         }
         currentPath.remove(currentPath.size() - 1);
@@ -255,15 +261,15 @@ public class Main {
         ArrayList<MovesTree> lexicographicallyFirst = bestPathsList.get(0);
         for (int i = 1; i < bestPathsList.size(); i++) {
             ArrayList<MovesTree> currentPath = bestPathsList.get(i);
-            if (orderPaths(currentPath, lexicographicallyFirst)) {
+            if (comparePaths(currentPath, lexicographicallyFirst)) {
                 lexicographicallyFirst = currentPath;
             }
         }
         return lexicographicallyFirst;
     }
 
-    public static boolean orderPaths(ArrayList<MovesTree> path1, ArrayList<MovesTree> path2) {
-        for (int i = 0; i < Math.min(path1.size(), path2.size()); i++) {
+    public static boolean comparePaths(ArrayList<MovesTree> path1, ArrayList<MovesTree> path2) {
+        for (int i = 1; i < Math.min(path1.size(), path2.size()); i++) {
             int compare = compareMoves(path1.get(i), path2.get(i));
             if (compare != 0) {
                 return compare < 0;

@@ -56,4 +56,17 @@ public class MovesTree {
         }
         return remaining;
     }
+
+    public int getTotalScore(){
+        int totalScore = this.getData().getPoints();
+        MovesTree father = this.getFather();
+        while (father.getData() != null) {
+                totalScore += father.getData().getPoints();
+                father = father.getFather();
+        }
+        if(this.getRemainingTokens(this.getBoard()) == 0){
+            totalScore += 1000;
+        }
+        return totalScore;
+    }
 }
