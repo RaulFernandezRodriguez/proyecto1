@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 
+
 public class Groups{
     private ArrayList members;
     private int x;
@@ -11,7 +12,7 @@ public class Groups{
         this.y = y;
     }
 
-    public void addToGroup(Ficha ficha){
+    public void addToGroup(Token ficha){
         this.members.add(ficha);
     }
 
