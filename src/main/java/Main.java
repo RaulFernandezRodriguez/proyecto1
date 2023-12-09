@@ -28,12 +28,7 @@ public class Main {
             scanner.nextLine(); // Consume the newline character after the number of games.
             actualGame = 1;
             while (actualGame <= games) {
-                String gameInput;
-                if (actualGame == games) {
-                    gameInput = storeLastGame(scanner);
-                } else {
-                    gameInput = storeGame(scanner);
-                }
+                String gameInput = storeGame(scanner);;
                 Token[][] board = gameBoard(gameInput);
                 if (board != null) {
                     play(board);
@@ -65,30 +60,12 @@ public class Main {
         StringBuilder gameInput = new StringBuilder();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
-            if (line.isEmpty() || !scanner.hasNextLine()) {
+            if (line.isEmpty()) {
                 break; // Fin del juego actual.
             }
             gameInput.append(line).append("\n");
         }
         return gameInput.toString().trim(); // Eliminar el último carácter '\n'.
-    }
-
-    /**
-     * Reads the input of the last game and returns it as a string.
-     *
-     * @param scanner The scanner object used to read the input.
-     * @return The input of the last game as a string.
-     */
-    private static String storeLastGame(Scanner scanner) {
-        StringBuilder lastGameInput = new StringBuilder();
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine().trim();
-            if (line.isEmpty()) {
-                break; // Se encontró un espacio en blanco, final del último juego.
-            }
-            lastGameInput.append(line).append("\n");
-        }
-        return lastGameInput.toString().trim();
     }
 
     /**
@@ -152,7 +129,6 @@ public class Main {
         for (int i = board.length - 1; i >= 0; i--) {
             for (int j = 0; j < board[0].length; j++) {
                 if (visited[i][j] == false && board[i][j].valid())
-                    //visited[i][j] = true;
                     groups.add(formGroup(board, visited, i, j, board.length - 1, board[0].length - 1));
             }
         }
