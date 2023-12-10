@@ -243,13 +243,17 @@ public class Main {
         }
         for (int i = board[0].length - 1; i >= 0; i--) {
             if (board[board.length - 1][i].getColor() == '_') {
-                for (int j = board.length - 1; j >= 0; j--) {
-                    if (i + 1 < board[0].length) {
-                        board[j][i].setColor(board[j][i + 1].getColor());
-                        board[j][i + 1].setColor('_');
-                    }
+            // Shift all columns to the left
+            for (int j = i; j < board[0].length - 1; j++) {
+                for (int k = 0; k < board.length; k++) {
+                    board[k][j].setColor(board[k][j + 1].getColor());
                 }
             }
+            // Set the last column to '_'
+            for (int k = 0; k < board.length; k++) {
+                board[k][board[0].length - 1].setColor('_');
+            }
+        }
         }
     }
 
@@ -356,7 +360,11 @@ public class Main {
         Result data1 = move1.getData();
         Result data2 = move2.getData();    
 
-        
+        // Compare based on row (inverted)
+        int compareX = Integer.compare(data1.getXPosition(), data2.getXPosition());
+        if (compareX != 0) {
+            return compareX;
+        }   
 
         // Compare based on column
         int compareY = Integer.compare(data1.getYPosition(), data2.getYPosition());
@@ -364,18 +372,12 @@ public class Main {
             return compareY;
         }
 
-        // Compare based on row (inverted)
-        int compareX = Integer.compare(data2.getXPosition(), data1.getXPosition());
-        if (compareX != 0) {
-            return compareX;
-        }    
-
         // Compare based on remaining tokensi
         int compareTokens = Integer.compare(move1.getRemainingTokens(move1.getBoard()), move2.getRemainingTokens(move2.getBoard()));
         if (compareTokens != 0) {
             return compareTokens;
         }
-        
+
         return Integer.compare(data1.getPoints(), data2.getPoints());
     }
 
