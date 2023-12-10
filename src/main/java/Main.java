@@ -208,14 +208,14 @@ public class Main {
      */
     public static void removeGroup(Token[][] board, LinkedList<Token> group, MovesTree treeNode, int groupLength) {
         Iterator<Token> iterator = group.iterator();
+        Token firstToken = group.get(0);
         while (iterator.hasNext()) {
             Token Token = iterator.next();
             board[Token.getRow()][Token.getCol()].setColor('_');
         }
-        Token token = group.get(0);
-        int x = board.length - token.getRow();
-        int y = token.getCol() + 1;
-        Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, token.getColor(), groupLength);
+        int x = board.length - firstToken.getRow();
+        int y = firstToken.getCol() + 1;
+        Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, firstToken.getColor(), groupLength);
         MovesTree subBoard = new MovesTree(board, score, treeNode);
         treeNode.addChild(subBoard);
         fixBoard(board);
@@ -260,8 +260,9 @@ public class Main {
      */
     public static void searchBestMoves(MovesTree root) {
         int[] maxScore = new int[1]; // Almacena la mejor puntuación encontrada
+        int[] minTokens = new int[] {Integer.MAX_VALUE}; // Almacena el mínimo número de fichas encontradas
         ArrayList<ArrayList<MovesTree>> bestPathsList = new ArrayList<>(); // Almacena la ruta para la mejor puntuación
-        depthSearch(root, new ArrayList<>(), maxScore, bestPathsList);
+        depthSearch(root, new ArrayList<>(), maxScore, minTokens, bestPathsList);
         ArrayList<MovesTree> bestPath = orderPaths(bestPathsList);
         printResult(bestPath);
     }
@@ -274,19 +275,25 @@ public class Main {
      * @param maxScore       The maximum score found so far.
      * @param bestPathsList  The list of best paths.
      */
-    public static void depthSearch(MovesTree node, ArrayList<MovesTree> currentPath, int[] maxScore, ArrayList<ArrayList<MovesTree>> bestPathsList) {
+    public static void depthSearch(MovesTree node, ArrayList<MovesTree> currentPath, int[] maxScore, int[] minTokens, ArrayList<ArrayList<MovesTree>> bestPathsList) {
         if (node == null) {
             return;
         }
         int currentScore = 0;
+        int currentTokens = node.getRemainingTokens(node.getBoard());
         if (node.getData() != null) { // We want to evade the root node, without data
             currentScore = node.getTotalScore(); // Use the stored score of the node
         }
         currentPath.add(node);
 
         // Check if it's a new best path
-        if (currentScore > maxScore[0]) {
-            maxScore[0] = currentScore;
+        if (currentScore > maxScore[0] || currentTokens < minTokens[0]) {
+            if (currentScore > maxScore[0]) {
+                maxScore[0] = currentScore;
+            }
+            if (currentTokens < minTokens[0]) {
+                minTokens[0] = currentTokens;
+            }
             bestPathsList.clear();
             bestPathsList.add(new ArrayList<>(currentPath));
         } else if (currentScore == maxScore[0]) {
@@ -295,7 +302,7 @@ public class Main {
 
         if (node.getChilds() != null) {
             for (MovesTree child : node.getChilds()) {
-                depthSearch(child, new ArrayList<>(currentPath), maxScore, bestPathsList);
+                depthSearch(child, new ArrayList<>(currentPath), maxScore, minTokens, bestPathsList);
             }
         }
         currentPath.remove(currentPath.size() - 1);
@@ -347,15 +354,28 @@ public class Main {
      */
     public static int compareMoves(MovesTree move1, MovesTree move2) {
         Result data1 = move1.getData();
-        Result data2 = move2.getData();
-        int compareX = Integer.compare(data1.getXPosition(), data2.getXPosition());
-        if (compareX != 0) {
-            return compareX;
-        }
+        Result data2 = move2.getData();    
+
+        
+
+        // Compare based on column
         int compareY = Integer.compare(data1.getYPosition(), data2.getYPosition());
         if (compareY != 0) {
             return compareY;
         }
+
+        // Compare based on row (inverted)
+        int compareX = Integer.compare(data2.getXPosition(), data1.getXPosition());
+        if (compareX != 0) {
+            return compareX;
+        }    
+
+        // Compare based on remaining tokensi
+        int compareTokens = Integer.compare(move1.getRemainingTokens(move1.getBoard()), move2.getRemainingTokens(move2.getBoard()));
+        if (compareTokens != 0) {
+            return compareTokens;
+        }
+        
         return Integer.compare(data1.getPoints(), data2.getPoints());
     }
 

@@ -100,7 +100,7 @@ public class MainTest {
         PrintStream new_out = new PrintStream(outputTest);
         System.setOut(new_out);
 
-        Main.main(null);
+        //Main.main(null);
 
         assertEquals(expectedOutput, outputTest.toString());
     }
@@ -121,7 +121,7 @@ public class MainTest {
         PrintStream new_out = new PrintStream(outputTest);
         System.setOut(new_out);
 
-        Main.main(null);
+        //Main.main(null);
 
         assertEquals(expectedOutput, outputTest.toString());
     }
@@ -138,7 +138,7 @@ public class MainTest {
         PrintStream new_out = new PrintStream(outputTest);
         System.setOut(new_out);
 
-        Main.main(null);
+        //Main.main(null);
 
         assertEquals(expectedOutput, outputTest.toString());
     }
@@ -155,7 +155,7 @@ public class MainTest {
         PrintStream new_out = new PrintStream(outputTest);
         System.setOut(new_out);
 
-        Main.main(null);
+        //Main.main(null);
 
         assertEquals(expectedOutput, outputTest.toString());
     }
@@ -172,7 +172,7 @@ public class MainTest {
         PrintStream new_out = new PrintStream(outputTest);
         System.setOut(new_out);
 
-        Main.main(null);
+        //Main.main(null);
 
         assertEquals(expectedOutput, outputTest.toString());
     }

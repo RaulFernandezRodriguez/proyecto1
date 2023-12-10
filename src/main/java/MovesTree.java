@@ -104,7 +104,7 @@ public class MovesTree {
     }
 
     /**
-     * Calculates and returns the total score of the game up to this point in the route.
+     * Calculates and returns the total score of the game up to this point in the.
      *
      * @return The total score of the game.
      */
