@@ -29,6 +29,8 @@ public class Main {
             actualGame = 1;
             while (actualGame <= games) {
                 String gameInput = storeGame(scanner);;
+                if(gameInput.isBlank())
+                    break;
                 Token[][] board = gameBoard(gameInput);
                 if (board != null) {
                     play(board);
@@ -80,7 +82,7 @@ public class Main {
         String[] rows = gameInput.split("\n");
         int numRows = rows.length;
         int numCols = rows[0].length();
-        if (numCols > 20) {
+        if (numCols > 20 || numRows > 20) {
             return null;
         }
         Token[][] board = new Token[numRows][numCols];
