@@ -39,9 +39,6 @@ public class Main {
                     break;
                 }
                 actualGame++;
-                if (actualGame == 1)
-                    scanner.nextLine();
-
                 // Verificar si hay más líneas después del juego actual
                 if (!scanner.hasNext()) {
                     break;
