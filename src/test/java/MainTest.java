@@ -2,6 +2,9 @@
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
+
+import Model.Main;
+
 import org.junit.Before;
 import org.junit.After;
 import org.junit.Assert;

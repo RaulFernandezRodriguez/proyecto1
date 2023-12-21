@@ -1,3 +1,5 @@
+package Model;
+
 /**
  * The Token class represents a game token in the board, with a color, row, and column position.
  */

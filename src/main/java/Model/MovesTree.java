@@ -1,4 +1,6 @@
+package Model;
 import java.util.ArrayList;
+
 
 /**
  * Represents a tree structure for storing game moves and their associated data.

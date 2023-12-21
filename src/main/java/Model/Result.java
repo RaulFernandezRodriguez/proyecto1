@@ -1,3 +1,5 @@
+package Model;
+
 /**
  * The Result class represents the result of a removing a group in the board, a move.
  * It contains information such as points, position, color, and group length.
