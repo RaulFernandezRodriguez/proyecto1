@@ -2,6 +2,8 @@ package View;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 
+import Model.Token;
+
 import java.awt.*;
 import java.awt.event.*;
 
@@ -19,14 +21,15 @@ public class GameGUI {
     private JMenuItem undoItem;
     private JMenuItem redoItem;
     private UndoManager undoManager;
-    //private Game game;
+    private JButton[][] boardButtons; // Modified line
 
-    public GameGUI() {
+    public GameGUI(int rows, int cols) {
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
 
         boardPanel = new JPanel();
+        boardPanel.setLayout(new GridLayout(rows, cols)); // Modified line
 
         menuBar = new JMenuBar();
         frame.setJMenuBar(menuBar);
@@ -41,9 +44,22 @@ public class GameGUI {
             }
         });
         mainMenu.add(newGameItem);
-       
-       // menuBar.add(gameMenu);
 
+        // Initialize the boardButtons array.
+        boardButtons = new JButton[rows][cols];
+
+        // Create a button for each cell in the grid.
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                boardButtons[i][j] = new JButton();
+                boardButtons[i][j].addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        // Handle the button click.
+                    }
+                });
+                boardPanel.add(boardButtons[i][j]);
+            }
+        }
         frame.setJMenuBar(menuBar);
         frame.add(boardPanel);
         frame.setVisible(true);
@@ -74,10 +90,13 @@ public class GameGUI {
         boardPanel.removeAll();
         boardPanel.setLayout(new GridLayout(rows, cols));
 
+        boardButtons = new JButton[rows][cols]; // Added line
+
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                JComboBox<String> cell = new JComboBox<>(colors);
-                boardPanel.add(cell);
+                JButton button = new JButton();
+                boardButtons[i][j] = button; // Added line
+                boardPanel.add(button);
             }
         }
 
@@ -96,6 +115,7 @@ public class GameGUI {
 
         editMenu = new JMenu("Edit");
         menuBar.add(editMenu);
+    
 
         undoItem = new JMenuItem("Undo");
         undoItem.addActionListener(new ActionListener() {
@@ -119,7 +139,7 @@ public class GameGUI {
     }
 
     private void findSolution() {
-        SolutionFinder solutionFinder = new SolutionFinder(game);
+        SolutionFinder solutionFinder = new SolutionFinder(getPlayingBoard());
         solutionFinder.execute();
         try {
             String solution = solutionFinder.get();
@@ -142,5 +162,26 @@ public class GameGUI {
         List<Move> moves = MoveFinder.findMoves(this);
         Route bestRoute = RouteSearcher.findBestRoute(this);
         // ... existing code ...
+    }
+
+    public Token[][] getCurrentBoard() {
+        int rows = gameBoardComponents.length;
+        int cols = gameBoardComponents[0].length;
+        Token[][] currentBoard = new Token[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                // Assuming each UI component has a Token object associated with it.
+                // This could be a property of the UI component or a separate data structure.
+                currentBoard[i][j] = gameBoardComponents[i][j].getToken();
+            }
+        }
+
+        return currentBoard;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        JButton clickedButton = (JButton) e.getSource();
+        // Handle the button click.
     }
 }

@@ -15,4 +15,5 @@ public class SolutionFinder extends SwingWorker<String, Void> {
         // This might be a complex algorithm depending on your game rules.
         return "optimal solution";
     }
+
 }
