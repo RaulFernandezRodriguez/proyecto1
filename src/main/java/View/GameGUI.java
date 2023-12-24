@@ -94,9 +94,17 @@ public class GameGUI {
 
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                JButton button = new JButton();
-                boardButtons[i][j] = button; // Added line
-                boardPanel.add(button);
+                boardButtons[i][j] = new JButton(); // Added line
+                final int row = i;
+                final int col = j;
+                boardButtons[i][j].addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        // Handle the button click.
+                        handleButtonClick(row, col);
+                        updateBoard();
+                    }
+                });
+                boardPanel.add(boardButtons[i][j]);
             }
         }
 
@@ -184,4 +192,36 @@ public class GameGUI {
         JButton clickedButton = (JButton) e.getSource();
         // Handle the button click.
     }
+
+    public void updateBoard() {
+        // Remove all existing buttons from the boardPanel
+        boardPanel.removeAll();
+    
+        // Create new buttons that reflect the current state of the board
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[0].length; j++) {
+                boardButtons[i][j] = new JButton();
+                final int row = i;
+                final int col = j;
+                boardButtons[i][j].addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        // Handle the button click.
+                        handleButtonClick(row, col);
+                    }
+                });
+    
+                // Set the button's text or icon to reflect the state of the board
+                // For example, if you're using a char array for the board, you might do:
+                // boardButtons[i][j].setText(Character.toString(board[i][j]));
+    
+                // Add the new button to the boardPanel
+                boardPanel.add(boardButtons[i][j]);
+            }
+        }
+        // Call repaint() and revalidate() on boardPanel to make sure the changes are displayed
+        boardPanel.repaint();
+        boardPanel.revalidate();
+    }
 }
+
+// To DO hacer un boton especial, un objeto.
