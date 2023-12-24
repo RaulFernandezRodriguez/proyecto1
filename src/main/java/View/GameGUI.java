@@ -206,7 +206,7 @@ public class GameGUI {
                 boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Handle the button click.
-                        handleButtonClick(row, col);
+                        handleButtonClick(getCurrentBoard(),row, col);
                     }
                 });
     

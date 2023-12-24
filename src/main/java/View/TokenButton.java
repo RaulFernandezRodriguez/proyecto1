@@ -18,7 +18,13 @@ public class TokenButton extends JButton {
     public TokenButton(Token token) {
         this.token = token;
         // Set the button color based on the token color.
-        this.setBackground(token.getColor());
+        this.setBackground(getVisualColor(token.getColor()));
+        this.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Handle the button click
+                handleButtonClick(getCurrentBoard(), 0, 0);
+            }
+        });
     }
 
     public Token getToken() {
@@ -28,11 +34,11 @@ public class TokenButton extends JButton {
     public void setToken(Token token) {
         this.token = token;
         // Update the button color when the token changes.
-        this.setBackground(token.getColor());
+        this.setBackground(getVisualColor(token.getColor()));
     }
 
     public void updateColor() {
-        this.setBackground(token.getColor());
+        this.setBackground(getVisualColor(token.getColor()));
     }
 
     public void handleButtonClick(Token[][] board, int row, int col){
@@ -61,5 +67,17 @@ public class TokenButton extends JButton {
         int y = startPosition[1] + 1;
         Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, firstToken.getColor(), groupLength);
         GenerateMoves.fixBoard(board);
+    }
+
+    public Color getVisualColor(char boardColor){
+        if(boardColor == 'R'){
+            return Color.RED;
+        }else if(boardColor == 'V'){
+            return Color.GREEN;
+        }else if(boardColor == 'A'){
+            return Color.BLUE;
+        }else {
+            return Color.WHITE;
+        }
     }
 }
