@@ -11,7 +11,7 @@ public class GameFileHandler {
         if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
             File file = fileChooser.getSelectedFile();
             try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-                for (Component component : boardPanel.getComponents()) {
+                for (Component component : components) {
                     if (component instanceof JComboBox) {
                         JComboBox<String> cell = (JComboBox<String>) component;
                         String color = (String) cell.getSelectedItem();

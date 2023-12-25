@@ -41,7 +41,7 @@ public class TokenButton extends JButton {
         this.setBackground(getVisualColor(token.getColor()));
     }
 
-    public void handleButtonClick(Token[][] board, int row, int col){
+    public static void handleButtonClick(Token[][] board, int row, int col){
         boolean[][] visited = new boolean[board.length][board[0].length];
         for (boolean[] fila : visited)
             Arrays.fill(fila, false);
@@ -56,11 +56,11 @@ public class TokenButton extends JButton {
             Token Token = iterator.next();
             board[Token.getRow()][Token.getCol()].setColor('_');
             groupLength++;
-            if(token.getRow() > startPosition[0]){
-                startPosition[0] = token.getRow();
+            if(Token.getRow() > startPosition[0]){
+                startPosition[0] = Token.getRow();
             }
-            if(token.getCol() < startPosition[1]){
-                startPosition[1] = token.getCol();
+            if(Token.getCol() < startPosition[1]){
+                startPosition[1] = Token.getCol();
             }
         }
         int x = board.length - startPosition[0];
@@ -78,6 +78,27 @@ public class TokenButton extends JButton {
             return Color.BLUE;
         }else {
             return Color.WHITE;
+
+        }
+    }
+
+    public static Color colorChooser(JFrame frame){
+        Object[] options = {"Blue", "Red", "Green", "Blank"};
+        int n = JOptionPane.showOptionDialog(frame,
+            "Choose a color for this button:",
+            "Choose Color",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+
+        switch (n) {
+            case 0: return Color.BLUE;
+            case 1: return Color.RED;
+            case 2: return Color.GREEN;
+            case 3: return Color.WHITE;
+            default: return null; // This will be returned if the user closes the dialog without choosing an option
         }
     }
 }

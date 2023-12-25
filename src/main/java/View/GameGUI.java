@@ -23,6 +23,14 @@ public class GameGUI {
     private UndoManager undoManager;
     private JButton[][] boardButtons; // Modified line
 
+    private GameState gameState = GameState.SETTING_UP;
+
+
+    public enum GameState {
+        SETTING_UP,
+        PLAYING
+    }
+
     public GameGUI(int rows, int cols) {
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,6 +63,7 @@ public class GameGUI {
                 boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Handle the button click.
+                        TokenButton.handleButtonClick(getCurrentBoard(), rows, cols);
                     }
                 });
                 boardPanel.add(boardButtons[i][j]);
@@ -99,9 +108,14 @@ public class GameGUI {
                 final int col = j;
                 boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        // Handle the button click.
-                        handleButtonClick(row, col);
-                        updateBoard();
+                        if (gameState == GameState.SETTING_UP) {
+                            // Ask for the color and set it
+                            Color chosenColor = TokenButton.colorChooser(frame);
+                            boardButtons[row][col].setBackground(chosenColor);
+                        } else if (gameState == GameState.PLAYING) {
+                            // Handle the button click.
+                            TokenButton.handleButtonClick(getCurrentBoard(), row, col);
+                        }
                     }
                 });
                 boardPanel.add(boardButtons[i][j]);
@@ -124,7 +138,6 @@ public class GameGUI {
         editMenu = new JMenu("Edit");
         menuBar.add(editMenu);
     
-
         undoItem = new JMenuItem("Undo");
         undoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -144,10 +157,30 @@ public class GameGUI {
             }
         });
         editMenu.add(redoItem);
+
+        findSolutionItem.setEnabled(false);
+        undoItem.setEnabled(false);
+        redoItem.setEnabled(false);
+
+        JButton startPlayingButton = new JButton("Start Playing");
+        startPlayingButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Check if the board is fully complete
+                if(checkBoard(rows, cols)){
+                    gameState = GameState.PLAYING;
+                    // If the board is fully complete, change the game state to PLAYING
+                    findSolutionItem.setEnabled(true);
+                    undoItem.setEnabled(true);
+                    redoItem.setEnabled(true);
+                }   
+            }
+        });
+        // Add the startPlayingButton to the boardPanel
+        boardPanel.add(startPlayingButton);
     }
 
     private void findSolution() {
-        SolutionFinder solutionFinder = new SolutionFinder(getPlayingBoard());
+        SolutionFinder solutionFinder = new SolutionFinder(getCurrentBoard());
         solutionFinder.execute();
         try {
             String solution = solutionFinder.get();
@@ -221,6 +254,18 @@ public class GameGUI {
         // Call repaint() and revalidate() on boardPanel to make sure the changes are displayed
         boardPanel.repaint();
         boardPanel.revalidate();
+    }
+
+    public boolean checkBoard(int rows, int cols){
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (boardButtons[i][j].getBackground() == null) {
+                    JOptionPane.showMessageDialog(frame, "The board is not fully complete.");
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
 
