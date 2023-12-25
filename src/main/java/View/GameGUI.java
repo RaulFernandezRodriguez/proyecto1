@@ -2,10 +2,16 @@ package View;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 
+import Model.GenerateMoves;
+import Model.MovesTree;
+import Model.SearchBestRoute;
 import Model.Token;
+import Model.Result;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 public class GameGUI {
     private JFrame frame;
@@ -128,7 +134,16 @@ public class GameGUI {
         findSolutionItem = new JMenuItem("Find Solution");
         findSolutionItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                findSolution();
+                SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
+                    @Override
+                    protected Void doInBackground() throws Exception {
+                        // Llama al método findSolution en un hilo de trabajador en segundo plano
+                        SolutionFinder.findSolution(getCurrentBoard());
+                        return null;
+                    }
+                };
+        
+                worker.execute();
             }
         });
         menuBar.add(findSolutionItem);
@@ -179,17 +194,6 @@ public class GameGUI {
         boardPanel.add(startPlayingButton);
     }
 
-    private void findSolution() {
-        SolutionFinder solutionFinder = new SolutionFinder(getCurrentBoard());
-        solutionFinder.execute();
-        try {
-            String solution = solutionFinder.get();
-            JOptionPane.showMessageDialog(frame, "Optimal solution: " + solution);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(frame, "Error finding solution: " + e.getMessage());
-        }
-    }
-
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -200,9 +204,7 @@ public class GameGUI {
 
     //TO DO
     public void play() {
-        List<Move> moves = MoveFinder.findMoves(this);
-        Route bestRoute = RouteSearcher.findBestRoute(this);
-        // ... existing code ...
+
     }
 
     public Token[][] getCurrentBoard() {
