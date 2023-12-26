@@ -41,11 +41,14 @@ public class TokenButton extends JButton {
         this.setBackground(getVisualColor(token.getColor()));
     }
 
-    public static void handleButtonClick(Token[][] board, int row, int col){
+    public static Token[][] handleButtonClick(Token[][] board, int row, int col){
         boolean[][] visited = new boolean[board.length][board[0].length];
         for (boolean[] fila : visited)
             Arrays.fill(fila, false);
         LinkedList<Token> group = GenerateMoves.formGroup(board, visited, row, col, board.length - 1, board[0].length - 1);
+        if(group.size() == 1){
+            return null;
+        }
         Iterator<Token> iterator = group.iterator();
         Token firstToken = group.get(0);
         int groupLength = 0;
@@ -66,10 +69,12 @@ public class TokenButton extends JButton {
         int x = board.length - startPosition[0];
         int y = startPosition[1] + 1;
         Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, firstToken.getColor(), groupLength);
+        GameGUI.showResult(score);
         GenerateMoves.fixBoard(board);
+        return board;
     }
 
-    public Color getVisualColor(char boardColor){
+    public static Color getVisualColor(char boardColor){
         if(boardColor == 'R'){
             return Color.RED;
         }else if(boardColor == 'V'){
@@ -79,6 +84,18 @@ public class TokenButton extends JButton {
         }else {
             return Color.WHITE;
 
+        }
+    }
+
+    public static char getCharColor(Color boardColor){
+        if(boardColor == Color.RED){
+            return 'R';
+        }else if(boardColor == Color.GREEN){
+            return 'V';
+        }else if(boardColor == Color.BLUE){
+            return 'A';
+        }else {
+            return '_';
         }
     }
 

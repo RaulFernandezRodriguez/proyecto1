@@ -6,6 +6,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "GameGUI",
+            "request": "launch",
+            "mainClass": "View.GameGUI",
+            "projectName": "proyecto1"
+        },
+        {
+            "type": "java",
             "name": "Main",
             "request": "launch",
             "mainClass": "Model.Main",

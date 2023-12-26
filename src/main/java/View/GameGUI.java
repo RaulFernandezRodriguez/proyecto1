@@ -28,6 +28,8 @@ public class GameGUI {
     private JMenuItem redoItem;
     private UndoManager undoManager;
     private JButton[][] boardButtons; // Modified line
+    private static JTextArea infoArea;
+    public static int movimiento = 1;
 
     private GameState gameState = GameState.SETTING_UP;
 
@@ -37,13 +39,13 @@ public class GameGUI {
         PLAYING
     }
 
-    public GameGUI(int rows, int cols) {
+    public GameGUI() {
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 500);
 
-        boardPanel = new JPanel();
-        boardPanel.setLayout(new GridLayout(rows, cols)); // Modified line
+        //boardPanel = new JPanel();
+        //boardPanel.setLayout(new GridLayout(rows, cols)); // Modified line
 
         menuBar = new JMenuBar();
         frame.setJMenuBar(menuBar);
@@ -52,29 +54,29 @@ public class GameGUI {
         menuBar.add(mainMenu);
 
         newGameItem = new JMenuItem("New Game");
-        newGameItem.addActionListener(new ActionListener() {
+        newGameItem.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
-                createNewGame();
+                play();
             }
         });
         mainMenu.add(newGameItem);
 
-        // Initialize the boardButtons array.
-        boardButtons = new JButton[rows][cols];
+        // // Initialize the boardButtons array.
+        // boardButtons = new JButton[rows][cols];
 
-        // Create a button for each cell in the grid.
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                boardButtons[i][j] = new JButton();
-                boardButtons[i][j].addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        // Handle the button click.
-                        TokenButton.handleButtonClick(getCurrentBoard(), rows, cols);
-                    }
-                });
-                boardPanel.add(boardButtons[i][j]);
-            }
-        }
+        // // Create a button for each cell in the grid.
+        // for (int i = 0; i < rows; i++) {
+        //     for (int j = 0; j < cols; j++) {
+        //         boardButtons[i][j] = new JButton();
+        //         boardButtons[i][j].addActionListener(new ActionListener() {
+        //             public void actionPerformed(ActionEvent e) {
+        //                 // Handle the button click.
+        //                 TokenButton.handleButtonClick(getCurrentBoard(), rows, cols);
+        //             }
+        //         });
+        //         boardPanel.add(boardButtons[i][j]);
+        //     }
+        // }
         frame.setJMenuBar(menuBar);
         frame.add(boardPanel);
         frame.setVisible(true);
@@ -94,9 +96,21 @@ public class GameGUI {
             }
         });
         mainMenu.add(loadGameItem);
+
+        infoArea = new JTextArea();
+        infoArea.setEditable(false); 
+        frame.add(new JScrollPane(infoArea), BorderLayout.SOUTH);
     }
 
-    private void createNewGame() {
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new GameGUI();
+            }
+        });
+    }
+
+    private void play() {
         String rowsInput = JOptionPane.showInputDialog(frame, "Enter number of rows:");
         String colsInput = JOptionPane.showInputDialog(frame, "Enter number of columns:");
         int rows = Integer.parseInt(rowsInput);
@@ -120,7 +134,9 @@ public class GameGUI {
                             boardButtons[row][col].setBackground(chosenColor);
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
-                            TokenButton.handleButtonClick(getCurrentBoard(), row, col);
+                            Token[][] newBoard = TokenButton.handleButtonClick(getCurrentBoard(), row, col);
+                            if(newBoard != null)
+                                updateBoard(newBoard);
                         }
                     }
                 });
@@ -194,68 +210,52 @@ public class GameGUI {
         boardPanel.add(startPlayingButton);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new GameGUI();
-            }
-        });
-    }
-
-    //TO DO
-    public void play() {
-
-    }
-
     public Token[][] getCurrentBoard() {
-        int rows = gameBoardComponents.length;
-        int cols = gameBoardComponents[0].length;
+        int rows = boardButtons.length;
+        int cols = boardButtons[0].length;
         Token[][] currentBoard = new Token[rows][cols];
-
+    
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                // Assuming each UI component has a Token object associated with it.
-                // This could be a property of the UI component or a separate data structure.
-                currentBoard[i][j] = gameBoardComponents[i][j].getToken();
+                // Get the color of the button
+                Color buttonColor = boardButtons[i][j].getBackground();
+                // Create a new Token with the color of the button
+                currentBoard[i][j] = new Token(TokenButton.getCharColor(buttonColor), i, j);
             }
         }
-
         return currentBoard;
     }
 
-    public void actionPerformed(ActionEvent e) {
-        JButton clickedButton = (JButton) e.getSource();
-        // Handle the button click.
-    }
+    // public void actionPerformed(ActionEvent e) {
+    //     JButton clickedButton = (JButton) e.getSource();
+    //     // Handle the button click.
+    // }
 
-    public void updateBoard() {
+    public void updateBoard(Token[][] fixedBoard) {
         // Remove all existing buttons from the boardPanel
         boardPanel.removeAll();
-    
-        // Create new buttons that reflect the current state of the board
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[0].length; j++) {
-                boardButtons[i][j] = new JButton();
+        // Create new buttons that reflect the current state of the fixedBoard
+        for (int i = 0; i < fixedBoard.length; i++) {
+            for (int j = 0; j < fixedBoard[i].length; j++) {
+                JButton button = new JButton();
+                button.setBackground(TokenButton.getVisualColor(fixedBoard[i][j].getColor()));
                 final int row = i;
                 final int col = j;
-                boardButtons[i][j].addActionListener(new ActionListener() {
+                button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Handle the button click.
-                        handleButtonClick(getCurrentBoard(),row, col);
+                        Token[][] newBoard = TokenButton.handleButtonClick(fixedBoard, row, col);
+                        if(newBoard != null)
+                            updateBoard(newBoard);
                     }
                 });
-    
-                // Set the button's text or icon to reflect the state of the board
-                // For example, if you're using a char array for the board, you might do:
-                // boardButtons[i][j].setText(Character.toString(board[i][j]));
-    
-                // Add the new button to the boardPanel
-                boardPanel.add(boardButtons[i][j]);
+                // Add the button to the boardPanel
+                boardPanel.add(button);
             }
         }
-        // Call repaint() and revalidate() on boardPanel to make sure the changes are displayed
-        boardPanel.repaint();
+        // Revalidate and repaint the boardPanel to reflect the new buttons
         boardPanel.revalidate();
+        boardPanel.repaint();
     }
 
     public boolean checkBoard(int rows, int cols){
@@ -269,6 +269,13 @@ public class GameGUI {
         }
         return true;
     }
-}
 
-// To DO hacer un boton especial, un objeto.
+    public static void showResult(Result data){
+        if(data.getPoints() == 1){
+            infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.");  
+        }else{
+            infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
+        }
+        movimiento++;
+    }
+}
