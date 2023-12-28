@@ -7,28 +7,38 @@ import Control.FileHandler;
 import Control.SolutionFinder;
 import Model.Token;
 import Model.Result;
+import Model.GenerateMoves;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 public class GameGUI {
     private JFrame frame;
     static private JPanel boardPanel;
     private JMenu mainMenu;
     private JMenuBar menuBar;
-    private JMenuItem newGameItem;
+    private JPanel buttonPanel;
+    private JButton newGameButton;
     private String[] colors = {"Red", "Green", "Blue"};
-    private JMenuItem saveGameItem;
-    private JMenuItem loadGameItem;
+    private JButton saveGameButton;
+    private JButton loadGameButton;
     private JMenuItem findSolutionItem;
     private JMenu editMenu;
     private JMenuItem undoItem;
     private JMenuItem redoItem;
     private UndoManager undoManager;
-    private JButton[][] boardButtons; // Modified line
+    private static JButton[][] boardButtons; // Modified line
     private static JTextArea infoArea;
     public static int movimiento = 1;
+
+    private JTextField movesField;
+    private JTextField scoreField;
+    private JTextField tokensField;
 
     private GameState gameState = GameState.SETTING_UP;
 
@@ -41,7 +51,7 @@ public class GameGUI {
     public GameGUI() {
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500, 500);
+        frame.setSize(800, 800);
 
         //boardPanel = new JPanel();
         //boardPanel.setLayout(new GridLayout(rows, cols)); // Modified line
@@ -52,13 +62,16 @@ public class GameGUI {
         mainMenu = new JMenu("Main Menu");
         menuBar.add(mainMenu);
 
-        newGameItem = new JMenuItem("New Game");
-        newGameItem.addActionListener(new ActionListener(){
+        buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        frame.add(buttonPanel, BorderLayout.NORTH);
+
+        newGameButton = new JButton("New Game");
+        newGameButton.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e) {
                 play();
             }
         });
-        mainMenu.add(newGameItem);
+        buttonPanel.add(newGameButton);
 
         // // Initialize the boardButtons array.
         // boardButtons = new JButton[rows][cols];
@@ -77,11 +90,11 @@ public class GameGUI {
         //     }
         // }
         frame.setJMenuBar(menuBar);
-        frame.add(boardPanel);
+        //frame.add(boardPanel);
         frame.setVisible(true);
 
-        saveGameItem = new JMenuItem("Save Game");
-        saveGameItem.addActionListener(new ActionListener() {
+        saveGameButton = new JButton("Save Game");
+        saveGameButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
                 if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
@@ -90,10 +103,10 @@ public class GameGUI {
                 }
             }
         });
-        mainMenu.add(saveGameItem);
+        buttonPanel.add(saveGameButton);
 
-        loadGameItem = new JMenuItem("Load Game");
-        loadGameItem.addActionListener(new ActionListener() {
+        loadGameButton = new JButton("Load Game");
+        loadGameButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
                 if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
@@ -102,7 +115,9 @@ public class GameGUI {
                 }
             }
         });
-        mainMenu.add(loadGameItem);
+        buttonPanel.add(loadGameButton);
+
+        frame.add(buttonPanel, BorderLayout.NORTH);
 
         infoArea = new JTextArea();
         infoArea.setEditable(false); 
@@ -148,9 +163,9 @@ public class GameGUI {
                 boardPanel.add(boardButtons[i][j]);
             }
         }
-
-        boardPanel.revalidate();
-        boardPanel.repaint();
+        frame.add(boardPanel, BorderLayout.CENTER);
+        // boardPanel.revalidate();
+        // boardPanel.repaint();
 
         findSolutionItem = new JMenuItem("Find Solution");
         findSolutionItem.addActionListener(new ActionListener() {
@@ -213,9 +228,29 @@ public class GameGUI {
         });
         // Add the startPlayingButton to the boardPanel
         boardPanel.add(startPlayingButton);
+
+        // Create the panel for displaying the result of a move
+        JTextArea moveResultArea = new JTextArea();
+        JScrollPane moveResultPanel = new JScrollPane(moveResultArea);
+
+        // Create the panel for displaying the game stats
+        JPanel gameStatsPanel = new JPanel(new GridLayout(3, 2));
+        gameStatsPanel.add(new JLabel("Number of moves:"));
+        movesField = new JTextField();
+        gameStatsPanel.add(movesField);
+        gameStatsPanel.add(new JLabel("Current total score:"));
+        scoreField = new JTextField();
+        gameStatsPanel.add(scoreField);
+        gameStatsPanel.add(new JLabel("Remaining tokens on board:"));
+        tokensField = new JTextField();
+        gameStatsPanel.add(tokensField);
+
+        // Create a split pane and add the panels to it
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, moveResultPanel, gameStatsPanel);
+        frame.add(splitPane, BorderLayout.SOUTH);
     }
 
-    public Token[][] getCurrentBoard() {
+    public static Token[][] getCurrentBoard() {
         int rows = boardButtons.length;
         int cols = boardButtons[0].length;
         Token[][] currentBoard = new Token[rows][cols];
@@ -280,6 +315,44 @@ public class GameGUI {
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
         }
         movimiento++;
+        if(checkEnd()){
+            if(remainingTokens == 1){
+                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
+            }else{
+                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
+            }
+            int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                // El jugador quiere guardar el resultado del juego.
+                // Aquí puedes llamar a tu método para guardar el resultado en un archivo de texto.
+            } else {
+                // El jugador no quiere guardar el resultado del juego.
+                // No hagas nada o maneja esta situación como prefieras.
+            }
+        }
+    }
+
+    public static boolean checkEnd(){
+        Token[][] board = getCurrentBoard();
+        ArrayList<LinkedList<Token>> groups = new ArrayList<>();
+        boolean[][] visited = new boolean[board.length][board[0].length];
+        for (boolean[] fila : visited)
+            Arrays.fill(fila, false);
+        for (int i = board.length - 1; i >= 0; i--) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (visited[i][j] == false && board[i][j].valid())
+                    groups.add(GenerateMoves.formGroup(board, visited, i, j, board.length - 1, board[0].length - 1));
+            }
+        }
+        Iterator<LinkedList<Token>> groupIterator = groups.iterator();
+        while (groupIterator.hasNext()) {
+            LinkedList<Token> currentGroup = groupIterator.next();
+            int groupLength = currentGroup.size();
+            if (groupLength >= 2) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Color getVisualColor(char boardColor){
@@ -325,5 +398,17 @@ public class GameGUI {
             case 3: return Color.WHITE;
             default: return null; // This will be returned if the user closes the dialog without choosing an option
         }
+    }
+
+    public void updateMovesField(int numberOfMoves) {
+        movesField.setText(String.valueOf(numberOfMoves));
+    }
+    
+    public void updateScoreField(int totalScore) {
+        scoreField.setText(String.valueOf(totalScore));
+    }
+    
+    public void updateTokensField(int remainingTokens) {
+        tokensField.setText(String.valueOf(remainingTokens));
     }
 }
