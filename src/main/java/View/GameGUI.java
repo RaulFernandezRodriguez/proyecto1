@@ -2,20 +2,19 @@ package View;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 
-import Model.GenerateMoves;
-import Model.MovesTree;
-import Model.SearchBestRoute;
+import Control.ButtonControl;
+import Control.FileHandler;
+import Control.SolutionFinder;
 import Model.Token;
 import Model.Result;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.io.File;
 
 public class GameGUI {
     private JFrame frame;
-    private JPanel boardPanel;
+    static private JPanel boardPanel;
     private JMenu mainMenu;
     private JMenuBar menuBar;
     private JMenuItem newGameItem;
@@ -84,7 +83,11 @@ public class GameGUI {
         saveGameItem = new JMenuItem("Save Game");
         saveGameItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                GameFileHandler.saveGameToFile(boardPanel.getComponents(), frame);
+                JFileChooser fileChooser = new JFileChooser();
+                if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    FileHandler.saveGameToFile(boardPanel, file);
+                }
             }
         });
         mainMenu.add(saveGameItem);
@@ -92,7 +95,11 @@ public class GameGUI {
         loadGameItem = new JMenuItem("Load Game");
         loadGameItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                GameFileHandler.loadGameFromFile(boardPanel, frame, colors);
+                JFileChooser fileChooser = new JFileChooser();
+                if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                    File file = fileChooser.getSelectedFile();
+                    FileHandler.loadGameFromFile(boardPanel, file, colors);
+                }
             }
         });
         mainMenu.add(loadGameItem);
@@ -130,13 +137,11 @@ public class GameGUI {
                     public void actionPerformed(ActionEvent e) {
                         if (gameState == GameState.SETTING_UP) {
                             // Ask for the color and set it
-                            Color chosenColor = TokenButton.colorChooser(frame);
+                            Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
-                            Token[][] newBoard = TokenButton.handleButtonClick(getCurrentBoard(), row, col);
-                            if(newBoard != null)
-                                updateBoard(newBoard);
+                            ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                         }
                     }
                 });
@@ -220,7 +225,7 @@ public class GameGUI {
                 // Get the color of the button
                 Color buttonColor = boardButtons[i][j].getBackground();
                 // Create a new Token with the color of the button
-                currentBoard[i][j] = new Token(TokenButton.getCharColor(buttonColor), i, j);
+                currentBoard[i][j] = new Token(getCharColor(buttonColor), i, j);
             }
         }
         return currentBoard;
@@ -231,22 +236,20 @@ public class GameGUI {
     //     // Handle the button click.
     // }
 
-    public void updateBoard(Token[][] fixedBoard) {
+    public static void updateBoard(Token[][] fixedBoard) {
         // Remove all existing buttons from the boardPanel
         boardPanel.removeAll();
         // Create new buttons that reflect the current state of the fixedBoard
         for (int i = 0; i < fixedBoard.length; i++) {
             for (int j = 0; j < fixedBoard[i].length; j++) {
                 JButton button = new JButton();
-                button.setBackground(TokenButton.getVisualColor(fixedBoard[i][j].getColor()));
+                button.setBackground(getVisualColor(fixedBoard[i][j].getColor()));
                 final int row = i;
                 final int col = j;
                 button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         // Handle the button click.
-                        Token[][] newBoard = TokenButton.handleButtonClick(fixedBoard, row, col);
-                        if(newBoard != null)
-                            updateBoard(newBoard);
+                        ButtonControl.handleButtonClick(fixedBoard, row, col);
                     }
                 });
                 // Add the button to the boardPanel
@@ -277,5 +280,50 @@ public class GameGUI {
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.");  
         }
         movimiento++;
+    }
+
+    public static Color getVisualColor(char boardColor){
+        if(boardColor == 'R'){
+            return Color.RED;
+        }else if(boardColor == 'V'){
+            return Color.GREEN;
+        }else if(boardColor == 'A'){
+            return Color.BLUE;
+        }else {
+            return Color.WHITE;
+
+        }
+    }
+
+    public static char getCharColor(Color boardColor){
+        if(boardColor == Color.RED){
+            return 'R';
+        }else if(boardColor == Color.GREEN){
+            return 'V';
+        }else if(boardColor == Color.BLUE){
+            return 'A';
+        }else {
+            return '_';
+        }
+    }
+
+    public static Color colorChooser(JFrame frame){
+        Object[] options = {"Blue", "Red", "Green", "Blank"};
+        int n = JOptionPane.showOptionDialog(frame,
+            "Choose a color for this button:",
+            "Choose Color",
+            JOptionPane.DEFAULT_OPTION,
+            JOptionPane.QUESTION_MESSAGE,
+            null,
+            options,
+            options[0]);
+
+        switch (n) {
+            case 0: return Color.BLUE;
+            case 1: return Color.RED;
+            case 2: return Color.GREEN;
+            case 3: return Color.WHITE;
+            default: return null; // This will be returned if the user closes the dialog without choosing an option
+        }
     }
 }

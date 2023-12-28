@@ -1,4 +1,4 @@
-package View;
+package Control;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,11 +12,6 @@ import Model.SearchBestRoute;
 import Model.Token;
 
 public class SolutionFinder extends SwingWorker<String, Void> {
-    private Game game;
-
-    public SolutionFinder(Game game) {
-        this.game = game;
-    }
 
     public static void findSolution(Token[][] board) {
         MovesTree original = new MovesTree(board);
@@ -51,6 +46,12 @@ public class SolutionFinder extends SwingWorker<String, Void> {
             message.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.\n");            
         }
         JOptionPane.showMessageDialog(null, message.toString());
+    }
+
+    @Override
+    protected String doInBackground() throws Exception {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'doInBackground'");
     }
 
 }
