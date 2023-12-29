@@ -1,42 +1,55 @@
 package Control;
 
 import javax.swing.*;
+
+import Model.Token;
+import Model.Main;
+
 import java.io.*;
+import java.util.Scanner;
 import java.awt.*;
 
 public class FileHandler {
-    public static void saveGameToFile(JPanel boardPanel, File file) {
+    public static void saveGameToFile(Token[][] board, File file) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
-            Component[] components = boardPanel.getComponents();
-            for (Component component : components) {
-                if (component instanceof JComboBox) {
-                    JComboBox<String> cell = (JComboBox<String>) component;
-                    String color = (String) cell.getSelectedItem();
-                    writer.print(color.charAt(0));
+            for (int i = 0; i < board.length; i++) {
+                for (int j = 0; j < board[0].length; j++) {
+                    writer.print(board[i][j].getColor());
                 }
+                writer.println();
             }
-            writer.println();
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error saving game: " + e.getMessage());
         }
     }
     
-    public static void loadGameFromFile(JPanel boardPanel, File file, String[] colors) {
+
+    public static Token[][] loadGameFromFile(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line = reader.readLine();
-            int rows = line.length();
-            int cols = line.length();
-    
-            boardPanel.removeAll();
-            boardPanel.setLayout(new GridLayout(rows, cols));
-    
-            for (char color : line.toCharArray()) {
-                JComboBox<String> cell = new JComboBox<>(colors);
-                cell.setSelectedItem(String.valueOf(color));
-                boardPanel.add(cell);
-            }
+            Scanner scanner = new Scanner(reader);
+            String gameInput = Main.storeGame(scanner);
+            return Main.gameBoard(gameInput);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error loading game: " + e.getMessage());
+            return null;
         }
     }
+    // public static void loadGameFromFile(JPanel boardPanel, File file, String[] colors) {
+    //     try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    //         String line = reader.readLine();
+    //         int rows = line.length();
+    //         int cols = line.length();
+    
+    //         boardPanel.removeAll();
+    //         boardPanel.setLayout(new GridLayout(rows, cols));
+    
+    //         for (char color : line.toCharArray()) {
+    //             JComboBox<String> cell = new JComboBox<>(colors);
+    //             cell.setSelectedItem(String.valueOf(color));
+    //             boardPanel.add(cell);
+    //         }
+    //     } catch (IOException e) {
+    //         JOptionPane.showMessageDialog(null, "Error loading game: " + e.getMessage());
+    //     }
+    // }
 }

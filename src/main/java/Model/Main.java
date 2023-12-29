@@ -49,6 +49,8 @@ public class Main {
         scanner.close();
     }
 
+
+    //Cambie estos 2 metodos de private a public
     /**
      * Reads the input of a game,scores it in a StringBuilder and returns it as a string.
      * The input of a game ends when a blank line is found.
@@ -56,7 +58,7 @@ public class Main {
      * @param scanner The scanner object used to read the input.
      * @return The input of one game as a string.
      */
-    private static String storeGame(Scanner scanner) {
+    public static String storeGame(Scanner scanner) {
         StringBuilder gameInput = new StringBuilder();
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine().trim();
@@ -76,7 +78,7 @@ public class Main {
      * @param gameInput The input of the game as a string.
      * @return The game board as a 2D static array of Token objects, or null if the input is invalid in some way.
      */
-    private static Token[][] gameBoard(String gameInput) {
+    public static Token[][] gameBoard(String gameInput) {
         String[] rows = gameInput.split("\n");
         int numRows = rows.length;
         int numCols = rows[0].length();
