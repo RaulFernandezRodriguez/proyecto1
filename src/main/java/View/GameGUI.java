@@ -2,12 +2,14 @@ package View;
 import javax.swing.*;
 import javax.swing.undo.UndoManager;
 
+import Control.BoardStatus;
 import Control.ButtonControl;
 import Control.FileHandler;
 import Control.SolutionFinder;
 import Model.Token;
 import Model.Result;
 import Model.GenerateMoves;
+import Model.MovesTree;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -31,7 +33,6 @@ public class GameGUI {
     private JMenu editMenu;
     private JButton undoItem;
     private JButton redoItem;
-    private UndoManager undoManager;
     private static JButton[][] boardButtons; // Modified line
     private static JTextArea infoArea;
     public static int movimiento = 1;
@@ -136,17 +137,25 @@ public class GameGUI {
         });
         buttonPanel.add(findSolutionItem);
 
-        undoManager = new UndoManager();
-
         editMenu = new JMenu("Edit");
         menuBar.add(editMenu);
     
         undoItem = new JButton("Undo");
         undoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (undoManager.canUndo()) {
-                    undoManager.undo();
-                }
+                if(gameState == GameState.SETTING_UP){
+                    BoardStatus.undoChange();
+                } else if(gameState == GameState.PLAYING){
+                    BoardStatus newStatus = BoardStatus.undoMove();
+                    updateBoard(newStatus.getBoard());
+                    Result newData = newStatus.getScore();
+                    tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
+                    scoreField.setText(String.valueOf(newData.getPoints()));
+                    movimiento--;
+                    tokensField.repaint();
+                    scoreField.repaint();
+                    movesField.repaint();
+                } 
             }
         });
         buttonPanel.add(undoItem);
@@ -154,8 +163,18 @@ public class GameGUI {
         redoItem = new JButton("Redo");
         redoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (undoManager.canRedo()) {
-                    undoManager.redo();
+                if(gameState == GameState.SETTING_UP){
+                    BoardStatus.redoChange();
+                } else if(gameState == GameState.PLAYING){
+                    BoardStatus newStatus = BoardStatus.redoMove();
+                    updateBoard(newStatus.getBoard());
+                    Result newData = newStatus.getScore();
+                    tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
+                    scoreField.setText(String.valueOf(newData.getPoints()));
+                    movimiento++;
+                    tokensField.repaint();
+                    scoreField.repaint();
+                    movesField.repaint();
                 }
             }
         });
@@ -168,6 +187,7 @@ public class GameGUI {
                     // Check if the board is fully complete
                     if(checkBoard(getCurrentBoard())){
                         gameState = GameState.PLAYING;
+                        BoardStatus.clearStacks();
                         // If the board is fully complete, change the game state to PLAYING
                         findSolutionItem.setEnabled(true);
                         undoItem.setEnabled(true);
@@ -226,9 +246,11 @@ public class GameGUI {
                             // Ask for the color and set it
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
+                            BoardStatus.makeChange(getCurrentBoard());
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+
                         }
                     }
                 });
@@ -252,6 +274,7 @@ public class GameGUI {
 
         gameStatsPanel.add(new JLabel("Number of moves:"));
         movesField = new JTextField();
+        movesField.setText(String.valueOf(movimiento));
         movesField.setEditable(false);
         gameStatsPanel.add(movesField);
 
@@ -336,7 +359,31 @@ public class GameGUI {
     }
 
     public void playboard(Token[][] board){
-        
+        // Set the layout of the boardPanel to match the size of the board
+        boardPanel.setLayout(new GridLayout(board.length, board[0].length));
+
+        // Remove all existing buttons from the boardPanel
+        boardPanel.removeAll();
+
+        for (int i = 0; i < board.length; i++) {
+            for (int j = 0; j < board[i].length; j++) {
+                JButton button = new JButton();
+                button.setBackground(getVisualColor(board[i][j].getColor()));
+                final int row = i;
+                final int col = j;
+                button.addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        // Handle the button click.
+                        ButtonControl.handleButtonClick(board, row, col);
+                    }
+                });
+                // Add the button to the boardPanel
+                boardPanel.add(button);
+            }
+        }
+        // Revalidate and repaint the boardPanel to reflect the new buttons
+        boardPanel.revalidate();
+        boardPanel.repaint();
     }
 
     public boolean checkBoard(Token[][] board){

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 import Model.GenerateMoves;
+import Model.MovesTree;
 import Model.Result;
 import Model.Token;
 import View.GameGUI;
@@ -41,6 +42,7 @@ public class ButtonControl {
         Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, groupColor, groupLength);
         GameGUI.showResult(score);
         GenerateMoves.fixBoard(board);
+        BoardStatus.makeMove(board, score);
         GameGUI.updateBoard(board);
     }
 }

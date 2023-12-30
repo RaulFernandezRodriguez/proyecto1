@@ -93,7 +93,7 @@ public class MovesTree {
      * @param board The game board.
      * @return The number of remaining tokens on the game board.
      */
-    public int getRemainingTokens(Token[][] board) {
+    public static int getRemainingTokens(Token[][] board) {
         int remaining = 0;
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
