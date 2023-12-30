@@ -34,76 +34,60 @@ public class BoardStatus {
     }
 
     public static void makeChange(Token[][] currentBoard) {
-        // Before making a move, save the current state to the undo stack
+        // After making a move, save the current state to the undo stack
         undoStack.push(new BoardStatus(currentBoard));
-        // Clear the redo stack
-        //redoStack.clear();
-
-        // Make the move...
-
-        // Update board, score, remainingTokens
     }
 
     public static Token[][] undoChange() {
         if (!undoStack.isEmpty()) {
-            // Save the current state to the redo stack
-            redoStack.push(new BoardStatus(board));
-            // Restore the state from the undo stack
             BoardStatus previous = undoStack.pop();
-            Token[][] newBoard = previous.getBoard();
+            Token[][] newBoard = previous.getBoard();         
+             // Save the current state to the redo stack
+            redoStack.push(new BoardStatus(newBoard));
             return newBoard;
         }
+        return null;
     }
 
     public static Token[][] redoChange() {
         if (!redoStack.isEmpty()) {
-            // Save the current state to the undo stack
-            undoStack.push(new BoardStatus(board, score, remainingTokens));
-            undoStack.push();
-            // Restore the state from the redo stack
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
+            undoStack.push(new BoardStatus(newBoard));
             return newBoard;
         }
+        return null;
     }
 
     public static void makeMove(Token[][] currentBoard, Result currentScore) {
-        // Before making a move, save the current state to the undo stack
-        undoStack.push(new BoardStatus(currentBoard, currentScore, currentTokens));
-        // Clear the redo stack
-        //redoStack.clear();
-
-        // Make the move...
-
-        // Update board, score, remainingTokens
+        // After making a move, save the current state to the undo stack
+        undoStack.push(new BoardStatus(currentBoard, currentScore));
     }
 
     public static BoardStatus undoMove() {
         if (!undoStack.isEmpty()) {
-            // Save the current state to the redo stack
-            redoStack.push(new BoardStatus(board, score));
-            // Restore the state from the undo stack
             BoardStatus previous = undoStack.pop();
             Token[][] newBoard = previous.getBoard();
-            Result newScore = previous.getScore();
+            Result newScore = previous.getScore();           
+             // Save the current state to the redo stack
+            redoStack.push(new BoardStatus(newBoard, newScore));
             return new BoardStatus(newBoard, newScore);
         }
+        return null;
     }
 
     public static BoardStatus redoMove() {
         if (!redoStack.isEmpty()) {
-            // Save the current state to the undo stack
-            undoStack.push(new BoardStatus(board, score, remainingTokens));
-            undoStack.push();
-            // Restore the state from the redo stack
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
             Result newScore = next.getScore();
+            undoStack.push(new BoardStatus(newBoard, newScore));
             return new BoardStatus(newBoard, newScore);
         }
+        return null;
     }
 
-    public void clearStacks() {
+    public static void clearStacks() {
         undoStack.clear();
         redoStack.clear();
     }

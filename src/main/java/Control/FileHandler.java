@@ -34,6 +34,16 @@ public class FileHandler {
             return null;
         }
     }
+
+    public static void writeMovesToFile(String gameResult) {
+        File file = new File("moves.txt");
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.print(gameResult);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     // public static void loadGameFromFile(JPanel boardPanel, File file, String[] colors) {
     //     try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
     //         String line = reader.readLine();

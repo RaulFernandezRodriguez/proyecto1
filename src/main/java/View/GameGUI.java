@@ -39,8 +39,8 @@ public class GameGUI {
     private static boolean isFirstGame = true;
 
     private JTextField movesField;
-    private JTextField scoreField;
-    private JTextField tokensField;
+    private static JTextField scoreField;
+    private static JTextField tokensField;
 
     private GameState gameState = GameState.SETTING_UP;
 
@@ -50,13 +50,18 @@ public class GameGUI {
         PLAYING
     }
 
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new GameGUI();
+            }
+        });
+    }
+
     public GameGUI() {
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 800);
-
-        //boardPanel = new JPanel();
-        //boardPanel.setLayout(new GridLayout(rows, cols)); // Modified line
 
         menuBar = new JMenuBar();
         frame.setJMenuBar(menuBar);
@@ -75,24 +80,7 @@ public class GameGUI {
         });
         buttonPanel.add(newGameButton);
 
-        // // Initialize the boardButtons array.
-        // boardButtons = new JButton[rows][cols];
-
-        // // Create a button for each cell in the grid.
-        // for (int i = 0; i < rows; i++) {
-        //     for (int j = 0; j < cols; j++) {
-        //         boardButtons[i][j] = new JButton();
-        //         boardButtons[i][j].addActionListener(new ActionListener() {
-        //             public void actionPerformed(ActionEvent e) {
-        //                 // Handle the button click.
-        //                 TokenButton.handleButtonClick(getCurrentBoard(), rows, cols);
-        //             }
-        //         });
-        //         boardPanel.add(boardButtons[i][j]);
-        //     }
-        // }
         frame.setJMenuBar(menuBar);
-        //frame.add(boardPanel);
         frame.setVisible(true);
 
         saveGameButton = new JButton("Save Game");
@@ -144,7 +132,8 @@ public class GameGUI {
         undoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(gameState == GameState.SETTING_UP){
-                    BoardStatus.undoChange();
+                    Token[][] newStatus = BoardStatus.undoChange();
+                    updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
                     BoardStatus newStatus = BoardStatus.undoMove();
                     updateBoard(newStatus.getBoard());
@@ -164,7 +153,8 @@ public class GameGUI {
         redoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(gameState == GameState.SETTING_UP){
-                    BoardStatus.redoChange();
+                    Token[][] newStatus = BoardStatus.redoChange();
+                    updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
                     BoardStatus newStatus = BoardStatus.redoMove();
                     updateBoard(newStatus.getBoard());
@@ -187,6 +177,7 @@ public class GameGUI {
                     // Check if the board is fully complete
                     if(checkBoard(getCurrentBoard())){
                         gameState = GameState.PLAYING;
+                        saveGameButton.setEnabled(false);
                         BoardStatus.clearStacks();
                         // If the board is fully complete, change the game state to PLAYING
                         findSolutionItem.setEnabled(true);
@@ -209,16 +200,9 @@ public class GameGUI {
         //frame.add(new JScrollPane(infoArea), BorderLayout.SOUTH);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                new GameGUI();
-            }
-        });
-    }
-
     private void play() {
         gameState = GameState.SETTING_UP;
+        saveGameButton.setEnabled(true);
         String rowsInput = JOptionPane.showInputDialog(frame, "Enter number of rows:");
         String colsInput = JOptionPane.showInputDialog(frame, "Enter number of columns:");
         int rows = Integer.parseInt(rowsInput);
@@ -262,9 +246,6 @@ public class GameGUI {
         // boardPanel.revalidate();
         // boardPanel.repaint();
 
-        
-        
-
         // Create the panel for displaying the result of a move
         JTextArea moveResultArea = new JTextArea();
         JScrollPane moveResultPanel = new JScrollPane(moveResultArea);
@@ -297,6 +278,7 @@ public class GameGUI {
         splitPane.setDividerLocation(150);
         frame.add(splitPane, BorderLayout.SOUTH);
 
+        frame.validate();
         frame.repaint();
 
         isFirstGame = false;
@@ -316,11 +298,6 @@ public class GameGUI {
         }
         return currentBoard;
     }
-
-    // public void actionPerformed(ActionEvent e) {
-    //     JButton clickedButton = (JButton) e.getSource();
-    //     // Handle the button click.
-    // }
 
     public static void updateBoard(Token[][] fixedBoard) {
         int rows = fixedBoard.length;
@@ -405,21 +382,20 @@ public class GameGUI {
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.\n");  
         }
         movimiento++;
-        // if(checkEnd()){
-        //     if(remainingTokens == 1){
-        //         infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
-        //     }else{
-        //         infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
-        //     }
-        //     int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
-        //     if (option == JOptionPane.YES_OPTION) {
-        //         // El jugador quiere guardar el resultado del juego.
-        //         // Aquí puedes llamar a tu método para guardar el resultado en un archivo de texto.
-        //     } else {
-        //         // El jugador no quiere guardar el resultado del juego.
-        //         // No hagas nada o maneja esta situación como prefieras.
-        //     }
-        // }
+        if(checkEnd()){
+            int remainingTokens = Integer.parseInt(tokensField.getText());
+            int finalScore = Integer.parseInt(scoreField.getText());
+            if(remainingTokens == 1){
+                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
+            }else{
+                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
+            }
+            int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+                // El jugador quiere guardar el resultado del juego.
+                FileHandler.writeMovesToFile(infoArea.getText());
+            } 
+        }
     }
 
     public static boolean checkEnd(){
@@ -488,10 +464,6 @@ public class GameGUI {
             case 3: return Color.WHITE;
             default: return null; // This will be returned if the user closes the dialog without choosing an option
         }
-    }
-
-    public void updateMovesField(int numberOfMoves) {
-        movesField.setText(String.valueOf(numberOfMoves));
     }
     
     public void updateScoreField(int totalScore) {
