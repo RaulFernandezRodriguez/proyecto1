@@ -37,8 +37,9 @@ public class GameGUI {
     private static JTextArea infoArea;
     public static int movimiento = 1;
     private static boolean isFirstGame = true;
+    public static int currentScore;
 
-    private JTextField movesField;
+    private static JTextField movesField;
     private static JTextField scoreField;
     private static JTextField tokensField;
 
@@ -202,10 +203,12 @@ public class GameGUI {
     private void play() {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
+        
         String rowsInput = JOptionPane.showInputDialog(frame, "Enter number of rows:");
         String colsInput = JOptionPane.showInputDialog(frame, "Enter number of columns:");
         int rows = Integer.parseInt(rowsInput);
         int cols = Integer.parseInt(colsInput);
+        
 
         if (!isFirstGame) {
             boardPanel.removeAll();
@@ -233,8 +236,6 @@ public class GameGUI {
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
-                            ++movimiento;
-                            movesField.setText(String.valueOf(movimiento));
                         }
                     }
                 });
@@ -243,8 +244,8 @@ public class GameGUI {
         }
         frame.add(boardPanel, BorderLayout.CENTER);
         frame.validate();
-        boardPanel.revalidate();
-        boardPanel.repaint();
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
 
         // Create the panel for displaying the game stats
         JPanel gameStatsPanel = new JPanel(new GridLayout(3, 2));
@@ -272,6 +273,11 @@ public class GameGUI {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoArea, gameStatsPanel);
         splitPane.setDividerLocation(150);
         frame.add(splitPane, BorderLayout.SOUTH);
+        currentScore = 0;
+        scoreField.setText(String.valueOf(currentScore));
+        movimiento = 1;
+        movesField.setText(String.valueOf(movimiento));
+        tokensField.setText(String.valueOf(rows * cols));
         splitPane.validate();
         splitPane.repaint();
 
@@ -346,9 +352,16 @@ public class GameGUI {
                 final int row = i;
                 final int col = j;
                 button.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        // Handle the button click.
-                        ButtonControl.handleButtonClick(board, row, col);
+                    public void actionPerformed(ActionEvent e){
+                        if (gameState == GameState.SETTING_UP) {
+                            // Ask for the color and set it
+                            Color chosenColor = colorChooser(frame);
+                            boardButtons[row][col].setBackground(chosenColor);
+                            BoardStatus.makeChange(getCurrentBoard());
+                        } else if (gameState == GameState.PLAYING) {
+                            // Handle the button click.
+                            ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                        }
                     }
                 });
                 // Add the button to the boardPanel
@@ -378,7 +391,6 @@ public class GameGUI {
         }else{
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.\n");  
         }
-        movimiento++;
         if(checkEnd()){
             int remainingTokens = Integer.parseInt(tokensField.getText());
             int finalScore = Integer.parseInt(scoreField.getText());
@@ -463,11 +475,17 @@ public class GameGUI {
         }
     }
     
-    public void updateScoreField(int totalScore) {
-        scoreField.setText(String.valueOf(totalScore));
+    public static void updateScoreField(int score) {
+        currentScore += score; // Suma la puntuación del movimiento a `currentScore`
+        scoreField.setText(String.valueOf(currentScore)); // Actualiza `scoreField` con la puntuación total
     }
     
-    public void updateTokensField(int remainingTokens) {
+    public static void updateTokensField(int remainingTokens) {
         tokensField.setText(String.valueOf(remainingTokens));
+    }
+
+    public static void updateMovesField() {
+        movimiento++;
+        movesField.setText(String.valueOf(movimiento));
     }
 }

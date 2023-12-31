@@ -44,5 +44,8 @@ public class ButtonControl {
         GenerateMoves.fixBoard(board);
         BoardStatus.makeMove(board, score);
         GameGUI.updateBoard(board);
+        GameGUI.updateScoreField(score.getPoints());
+        GameGUI.updateTokensField(MovesTree.getRemainingTokens(board));
+        GameGUI.updateMovesField();
     }
 }
