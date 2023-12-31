@@ -347,6 +347,7 @@ public class GameGUI {
     }
 
     public void playboard(Token[][] board){
+        gameState = GameState.SETTING_UP;
         // Set the layout of the boardPanel to match the size of the board
         boardPanel.setLayout(new GridLayout(board.length, board[0].length));
 
