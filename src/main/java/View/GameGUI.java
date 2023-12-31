@@ -46,8 +46,9 @@ public class GameGUI {
 
 
     public enum GameState {
+        MENU,
         SETTING_UP,
-        PLAYING
+        PLAYING,
     }
 
     public static void main(String[] args) {
@@ -59,6 +60,7 @@ public class GameGUI {
     }
 
     public GameGUI() {
+        gameState = GameState.MENU;
         frame = new JFrame("Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(1000, 800);
@@ -195,9 +197,6 @@ public class GameGUI {
         redoItem.setEnabled(false);
 
         frame.add(buttonPanel, BorderLayout.NORTH);
-
-
-        //frame.add(new JScrollPane(infoArea), BorderLayout.SOUTH);
     }
 
     private void play() {
@@ -234,7 +233,8 @@ public class GameGUI {
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
-
+                            ++movimiento;
+                            movesField.setText(String.valueOf(movimiento));
                         }
                     }
                 });
@@ -243,12 +243,8 @@ public class GameGUI {
         }
         frame.add(boardPanel, BorderLayout.CENTER);
         frame.validate();
-        // boardPanel.revalidate();
-        // boardPanel.repaint();
-
-        // Create the panel for displaying the result of a move
-        JTextArea moveResultArea = new JTextArea();
-        JScrollPane moveResultPanel = new JScrollPane(moveResultArea);
+        boardPanel.revalidate();
+        boardPanel.repaint();
 
         // Create the panel for displaying the game stats
         JPanel gameStatsPanel = new JPanel(new GridLayout(3, 2));
@@ -269,7 +265,6 @@ public class GameGUI {
         tokensField.setEditable(false);
         gameStatsPanel.add(tokensField);
 
-
         infoArea = new JTextArea();
         infoArea.setEditable(false); 
 
@@ -277,6 +272,8 @@ public class GameGUI {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoArea, gameStatsPanel);
         splitPane.setDividerLocation(150);
         frame.add(splitPane, BorderLayout.SOUTH);
+        splitPane.validate();
+        splitPane.repaint();
 
         frame.validate();
         frame.repaint();
