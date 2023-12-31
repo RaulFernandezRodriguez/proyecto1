@@ -20,11 +20,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 public class GameGUI {
-    private JFrame frame;
+    private static JFrame frame;
     static private JPanel boardPanel;
     private JMenu mainMenu;
     private JMenuBar menuBar;
-    private JPanel buttonPanel;
+    private static JPanel buttonPanel;
     private JButton newGameButton;
     private String[] colors = {"Red", "Green", "Blue"};
     private JButton saveGameButton;
@@ -43,7 +43,7 @@ public class GameGUI {
     private static JTextField scoreField;
     private static JTextField tokensField;
 
-    private GameState gameState = GameState.SETTING_UP;
+    private static GameState gameState = GameState.SETTING_UP;
 
 
     public enum GameState {
@@ -305,37 +305,45 @@ public class GameGUI {
     public static void updateBoard(Token[][] fixedBoard) {
         int rows = fixedBoard.length;
         int cols = fixedBoard[0].length;
-        if (isFirstGame) {
-            boardPanel = new JPanel();
-            boardPanel.setLayout(new GridLayout(rows, cols));
-            boardButtons = new JButton[rows][cols]; // Added line
-        } else{
+        if (!isFirstGame) {
             boardPanel.removeAll();
             boardPanel.revalidate();
             boardPanel.repaint();
         }
-        // Remove all existing buttons from the boardPanel
-        //boardPanel.removeAll();
-        // Create new buttons that reflect the current state of the fixedBoard
-        for (int i = 0; i < fixedBoard.length; i++) {
-            for (int j = 0; j < fixedBoard[i].length; j++) {
-                JButton button = new JButton();
-                button.setBackground(getVisualColor(fixedBoard[i][j].getColor()));
+
+        boardPanel = new JPanel();
+        boardPanel.setLayout(new GridLayout(rows, cols));
+
+        boardButtons = new JButton[rows][cols]; // Added line
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                boardButtons[i][j] = new JButton(); // Added line
                 final int row = i;
                 final int col = j;
-                button.addActionListener(new ActionListener() {
+                boardButtons[i][j].setBackground(getVisualColor(fixedBoard[i][j].getColor()));
+                boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        // Handle the button click.
-                        ButtonControl.handleButtonClick(fixedBoard, row, col);
+                        if (gameState == GameState.SETTING_UP) {
+                            // Ask for the color and set it
+                            Color chosenColor = colorChooser(frame);
+                            boardButtons[row][col].setBackground(chosenColor);
+                            BoardStatus.makeChange(getCurrentBoard());
+                        } else if (gameState == GameState.PLAYING) {
+                            // Handle the button click.
+                            ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                        }
                     }
                 });
-                // Add the button to the boardPanel
-                boardPanel.add(button);
+                boardPanel.add(boardButtons[i][j]);
             }
         }
-        // Revalidate and repaint the boardPanel to reflect the new buttons
+        frame.add(boardPanel, BorderLayout.CENTER);
+        frame.validate();
         boardPanel.revalidate();
         boardPanel.repaint();
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
     }
 
     public void playboard(Token[][] board){
@@ -391,7 +399,9 @@ public class GameGUI {
         }else{
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.\n");  
         }
-        if(checkEnd()){
+        infoArea.revalidate();
+        infoArea.repaint();
+        if(checkEnd() == true){
             int remainingTokens = Integer.parseInt(tokensField.getText());
             int finalScore = Integer.parseInt(scoreField.getText());
             if(remainingTokens == 1){
@@ -399,6 +409,8 @@ public class GameGUI {
             }else{
                 infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
             }
+            infoArea.revalidate();
+            infoArea.repaint();
             int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
             if (option == JOptionPane.YES_OPTION) {
                 // El jugador quiere guardar el resultado del juego.
