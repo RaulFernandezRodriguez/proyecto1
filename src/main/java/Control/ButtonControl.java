@@ -40,9 +40,8 @@ public class ButtonControl {
         int x = board.length - startPosition[0];
         int y = startPosition[1] + 1;
         Result score = new Result((int) Math.pow(groupLength - 2, 2), x, y, groupColor, groupLength);
-        GameGUI.showResult(score);
+        GameGUI.showResult(score);       
         GenerateMoves.fixBoard(board);
-        BoardStatus.makeMove(board, score);
         GameGUI.updateBoard(board);
         GameGUI.updateScoreField(score.getPoints());
         GameGUI.updateTokensField(MovesTree.getRemainingTokens(board));

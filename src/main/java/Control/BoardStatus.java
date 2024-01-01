@@ -9,27 +9,34 @@ import Model.Token;
 public class BoardStatus {
     
     private Token[][] board;
-    private Result score;
+    private String dataTrack;
+    private int totalScore;
 
     private static Stack<BoardStatus> undoStack = new Stack<>();
     private static Stack<BoardStatus> redoStack = new Stack<>();
 
-    public BoardStatus(Token[][] board, Result score) {
+    public BoardStatus(Token[][] board, String dataTrack, int totalScore) {
         this.board = board;
-        this.score = score;
+        this.dataTrack = dataTrack;
+        this.totalScore = totalScore;
     }
 
     public BoardStatus(Token[][] board) {
         this.board = board;
-        this.score = null;
+        this.totalScore= 0;
+        this.dataTrack = "";
     }
 
     public Token[][] getBoard() {
         return board;
     }
 
-    public Result getScore() {
-        return score;
+    public int getScore() {
+        return totalScore;
+    }
+
+    public String getDataTrack() {
+        return dataTrack;
     }
 
     public static void makeChange(Token[][] currentBoard) {
@@ -58,19 +65,20 @@ public class BoardStatus {
         return null;
     }
 
-    public static void makeMove(Token[][] currentBoard, Result currentScore) {
+    public static void makeMove(BoardStatus previousBoard) {
         // After making a move, save the current state to the undo stack
-        undoStack.push(new BoardStatus(currentBoard, currentScore));
+        undoStack.push(previousBoard);
     }
 
     public static BoardStatus undoMove() {
         if (!undoStack.isEmpty()) {
             BoardStatus previous = undoStack.pop();
             Token[][] newBoard = previous.getBoard();
-            Result newScore = previous.getScore();           
+            int newScore = previous.getScore();      
+            String newDataTrack = previous.getDataTrack();     
              // Save the current state to the redo stack
-            redoStack.push(new BoardStatus(newBoard, newScore));
-            return new BoardStatus(newBoard, newScore);
+            redoStack.push(new BoardStatus(newBoard, newDataTrack, newScore));
+            return new BoardStatus(newBoard, newDataTrack, newScore);
         }
         return null;
     }
@@ -80,8 +88,11 @@ public class BoardStatus {
             // Save the current state to the undo stack 
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
-            Result newScore = next.getScore();
-            return new BoardStatus(newBoard, newScore);
+            int newScore = next.getScore();      
+            String newDataTrack = next.getDataTrack();     
+             // Save the current state to the redo stack
+            undoStack.push(new BoardStatus(newBoard, newDataTrack, newScore));
+            return new BoardStatus(newBoard, newDataTrack, newScore);
         }
         return null;
     }

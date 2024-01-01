@@ -136,8 +136,7 @@ public class GameGUI {
                     BoardStatus newStatus = BoardStatus.undoMove();
                     if(newStatus.getBoard() != null)
                         updateBoard(newStatus.getBoard());
-                    if(newStatus.getScore() != null){
-                        Result newData = newStatus.getScore();
+                    if(newStatus.getDataTrack() != null){
                         String currentText = infoArea.getText();
                         int lastIndex = currentText.lastIndexOf("\n");
                         if (lastIndex != -1) {
@@ -149,7 +148,7 @@ public class GameGUI {
                             infoArea.setText("");
                         }
                         tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
-                        scoreField.setText(String.valueOf(newData.getPoints()));
+                        scoreField.setText(String.valueOf(newStatus.getScore()));
                         movimiento--;
                         tokensField.repaint();
                         scoreField.repaint();
@@ -172,11 +171,10 @@ public class GameGUI {
                     BoardStatus newStatus = BoardStatus.redoMove();
                     if(newStatus.getBoard() != null)
                         updateBoard(newStatus.getBoard());
-                    if(newStatus.getScore() != null){
-                        Result newData = newStatus.getScore();
-                        showResult(newData);
+                    if(newStatus.getDataTrack() != null){
+                        infoArea.append(newStatus.getDataTrack());
                         tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
-                        scoreField.setText(String.valueOf(newData.getPoints()));
+                        scoreField.setText(String.valueOf(newStatus.getScore()));
                         updateMovesField();
                         tokensField.repaint();
                         scoreField.repaint();
@@ -204,7 +202,8 @@ public class GameGUI {
                     gameState = GameState.PLAYING;
                     saveGameButton.setEnabled(false);
                     BoardStatus.clearStacks();
-                    BoardStatus.makeMove(getCurrentBoard(), null);
+                    BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), "", Integer.parseInt(scoreField.getText()));
+                    BoardStatus.makeMove(previousBoard);
                     // If the board is fully complete, change the game state to PLAYING
                     findSolutionItem.setEnabled(true);
                     endGameButton.setEnabled(true);
@@ -295,11 +294,13 @@ public class GameGUI {
                     public void actionPerformed(ActionEvent e) {
                         if (gameState == GameState.SETTING_UP) {
                             // Ask for the color and set it
+                            BoardStatus.makeChange(getCurrentBoard());
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
-                            BoardStatus.makeChange(getCurrentBoard());
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
+                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()));
+                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                             boardPanel.repaint();
                         }
@@ -318,7 +319,6 @@ public class GameGUI {
         frame.validate();
         frame.repaint();
         
-        BoardStatus.makeChange(getCurrentBoard());
         isFirstGame = false;
     }
 
@@ -360,13 +360,15 @@ public class GameGUI {
                 boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         if (gameState == GameState.SETTING_UP) {
+                            BoardStatus.makeChange(getCurrentBoard());
                             // Ask for the color and set it
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
-                            BoardStatus.makeChange(getCurrentBoard());
                         } else if (gameState == GameState.PLAYING) {
-                            // Handle the button click.
+                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()));
+                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                            boardPanel.repaint();
                         }
                     }
                 });
@@ -383,7 +385,6 @@ public class GameGUI {
         frame.validate();
         frame.repaint();
 
-        BoardStatus.makeChange(getCurrentBoard());
         isFirstGame = false;
     }
 
@@ -421,12 +422,13 @@ public class GameGUI {
                 boardButtons[i][j].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         if (gameState == GameState.SETTING_UP) {
+                            BoardStatus.makeChange(getCurrentBoard());
                             // Ask for the color and set it
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
-                            BoardStatus.makeChange(getCurrentBoard());
                         } else if (gameState == GameState.PLAYING) {
-                            // Handle the button click.
+                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()));
+                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                             boardPanel.repaint();
                         }
@@ -568,5 +570,11 @@ public class GameGUI {
         movimiento++;
         movesField.setText(String.valueOf(movimiento));
         movesField.repaint();
+    }
+
+    public static String getLastLine() {
+        String text = infoArea.getText();
+        String[] lines = text.split("\n");
+        return lines[lines.length - 1];
     }
 }
