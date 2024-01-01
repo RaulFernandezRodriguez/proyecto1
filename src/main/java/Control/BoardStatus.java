@@ -5,7 +5,7 @@ import java.util.Stack;
 import Model.Result;
 import Model.Token;
 
-// Objeto que almacenara muchas cosas, como estado, fichas restantes y puntuacion
+
 public class BoardStatus {
     
     private Token[][] board;
@@ -13,7 +13,6 @@ public class BoardStatus {
 
     private static Stack<BoardStatus> undoStack = new Stack<>();
     private static Stack<BoardStatus> redoStack = new Stack<>();
-
 
     public BoardStatus(Token[][] board, Result score) {
         this.board = board;
@@ -78,10 +77,10 @@ public class BoardStatus {
 
     public static BoardStatus redoMove() {
         if (!redoStack.isEmpty()) {
+            // Save the current state to the undo stack 
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
             Result newScore = next.getScore();
-            undoStack.push(new BoardStatus(newBoard, newScore));
             return new BoardStatus(newBoard, newScore);
         }
         return null;

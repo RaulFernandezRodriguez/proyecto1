@@ -1,6 +1,4 @@
 package View;
-import javax.swing.*;
-import javax.swing.undo.UndoManager;
 
 import Control.BoardStatus;
 import Control.ButtonControl;
@@ -11,12 +9,12 @@ import Model.Result;
 import Model.GenerateMoves;
 import Model.MovesTree;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class GameGUI {
@@ -26,11 +24,9 @@ public class GameGUI {
     private JMenuBar menuBar;
     private static JPanel buttonPanel;
     private JButton newGameButton;
-    private String[] colors = {"Red", "Green", "Blue"};
     private JButton saveGameButton;
     private JButton loadGameButton;
     private JButton findSolutionItem;
-    private JMenu editMenu;
     private JButton undoItem;
     private JButton redoItem;
     private static JButton[][] boardButtons; // Modified line
@@ -44,7 +40,6 @@ public class GameGUI {
     private static JTextField tokensField;
 
     private static GameState gameState = GameState.SETTING_UP;
-
 
     public enum GameState {
         MENU,
@@ -97,6 +92,7 @@ public class GameGUI {
             }
         });
         buttonPanel.add(saveGameButton);
+        saveGameButton.setEnabled(false);
 
         loadGameButton = new JButton("Load Game");
         loadGameButton.addActionListener(new ActionListener() {
@@ -125,53 +121,80 @@ public class GameGUI {
         
                 worker.execute();
             }
-        });
+        });        
         buttonPanel.add(findSolutionItem);
+        findSolutionItem.setEnabled(false);
 
-        editMenu = new JMenu("Edit");
-        menuBar.add(editMenu);
-    
         undoItem = new JButton("Undo");
         undoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(gameState == GameState.SETTING_UP){
                     Token[][] newStatus = BoardStatus.undoChange();
-                    updateBoard(newStatus);
+                    if(newStatus != null)
+                        updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
                     BoardStatus newStatus = BoardStatus.undoMove();
-                    updateBoard(newStatus.getBoard());
-                    Result newData = newStatus.getScore();
-                    tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
-                    scoreField.setText(String.valueOf(newData.getPoints()));
-                    movimiento--;
-                    tokensField.repaint();
-                    scoreField.repaint();
-                    movesField.repaint();
+                    if(newStatus.getBoard() != null)
+                        updateBoard(newStatus.getBoard());
+                    if(newStatus.getScore() != null){
+                        Result newData = newStatus.getScore();
+                        String currentText = infoArea.getText();
+                        int lastIndex = currentText.lastIndexOf("\n");
+                        if (lastIndex != -1) {
+                            // There is more than one line in the text area
+                            String newText = currentText.substring(0, lastIndex);
+                            infoArea.setText(newText);
+                        } else {
+                            // There is only one line in the text area, clear it
+                            infoArea.setText("");
+                        }
+                        tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
+                        scoreField.setText(String.valueOf(newData.getPoints()));
+                        movimiento--;
+                        tokensField.repaint();
+                        scoreField.repaint();
+                        movesField.repaint();
+                    }
                 } 
             }
         });
-        buttonPanel.add(undoItem);
+        buttonPanel.add(undoItem);        
+        undoItem.setEnabled(false);
 
         redoItem = new JButton("Redo");
         redoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(gameState == GameState.SETTING_UP){
                     Token[][] newStatus = BoardStatus.redoChange();
-                    updateBoard(newStatus);
+                    if(newStatus != null)
+                        updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
                     BoardStatus newStatus = BoardStatus.redoMove();
-                    updateBoard(newStatus.getBoard());
-                    Result newData = newStatus.getScore();
-                    tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
-                    scoreField.setText(String.valueOf(newData.getPoints()));
-                    movimiento++;
-                    tokensField.repaint();
-                    scoreField.repaint();
-                    movesField.repaint();
+                    if(newStatus.getBoard() != null)
+                        updateBoard(newStatus.getBoard());
+                    if(newStatus.getScore() != null){
+                        Result newData = newStatus.getScore();
+                        showResult(newData);
+                        tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
+                        scoreField.setText(String.valueOf(newData.getPoints()));
+                        updateMovesField();
+                        tokensField.repaint();
+                        scoreField.repaint();
+                    }
                 }
             }
         });
         buttonPanel.add(redoItem);
+        redoItem.setEnabled(false);
+
+        JButton endGameButton = new JButton("End Game");
+        endGameButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                endGame();
+            }
+        });
+        buttonPanel.add(endGameButton);
+        endGameButton.setEnabled(false);
 
         JButton startPlayingButton = new JButton("Start Playing");
         startPlayingButton.addActionListener(new ActionListener() {
@@ -181,17 +204,17 @@ public class GameGUI {
                     gameState = GameState.PLAYING;
                     saveGameButton.setEnabled(false);
                     BoardStatus.clearStacks();
+                    BoardStatus.makeMove(getCurrentBoard(), null);
                     // If the board is fully complete, change the game state to PLAYING
                     findSolutionItem.setEnabled(true);
+                    endGameButton.setEnabled(true);
                 }   
             }
         });
         // Add the startPlayingButton to the boardPanel
         buttonPanel.add(startPlayingButton);
 
-        findSolutionItem.setEnabled(false);
-        undoItem.setEnabled(false);
-        redoItem.setEnabled(false);
+        
 
         frame.add(buttonPanel, BorderLayout.NORTH);
 
@@ -235,6 +258,10 @@ public class GameGUI {
     private void play() {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
+
+
+        undoItem.setEnabled(true);
+        redoItem.setEnabled(true);
         
         String rowsInput = JOptionPane.showInputDialog(frame, "Enter number of rows:");
         String colsInput = JOptionPane.showInputDialog(frame, "Enter number of columns:");
@@ -274,6 +301,7 @@ public class GameGUI {
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                            boardPanel.repaint();
                         }
                     }
                 });
@@ -289,73 +317,19 @@ public class GameGUI {
 
         frame.validate();
         frame.repaint();
-
+        
+        BoardStatus.makeChange(getCurrentBoard());
         isFirstGame = false;
-    }
-
-    public static Token[][] getCurrentBoard() {
-        int rows = boardButtons.length;
-        int cols = boardButtons[0].length;
-        Token[][] currentBoard = new Token[rows][cols];
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                // Get the color of the button
-                Color buttonColor = boardButtons[i][j].getBackground();
-                // Create a new Token with the color of the button
-                currentBoard[i][j] = new Token(getCharColor(buttonColor), i, j);
-            }
-        }
-        return currentBoard;
-    }
-
-    public static void updateBoard(Token[][] fixedBoard) {
-        int rows = fixedBoard.length;
-        int cols = fixedBoard[0].length;
-        if (!isFirstGame) {
-            boardPanel.removeAll();
-            boardPanel.revalidate();
-            boardPanel.repaint();
-        }
-
-        boardPanel = new JPanel();
-        boardPanel.setLayout(new GridLayout(rows, cols));
-
-        boardButtons = new JButton[rows][cols]; // Added line
-
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                boardButtons[i][j] = new JButton(); // Added line
-                final int row = i;
-                final int col = j;
-                boardButtons[i][j].setBackground(getVisualColor(fixedBoard[i][j].getColor()));
-                boardButtons[i][j].addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e) {
-                        if (gameState == GameState.SETTING_UP) {
-                            // Ask for the color and set it
-                            Color chosenColor = colorChooser(frame);
-                            boardButtons[row][col].setBackground(chosenColor);
-                            BoardStatus.makeChange(getCurrentBoard());
-                        } else if (gameState == GameState.PLAYING) {
-                            // Handle the button click.
-                            ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
-                            boardPanel.repaint();
-                        }
-                    }
-                });
-                boardPanel.add(boardButtons[i][j]);
-            }
-        }
-        frame.add(boardPanel, BorderLayout.CENTER);
-        frame.validate();
-        boardPanel.revalidate();
-        boardPanel.repaint();
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
     }
 
     public void playboard(Token[][] board){
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
+        
+
+        undoItem.setEnabled(true);
+        redoItem.setEnabled(true);
+
         int rows = board.length;
         int cols = board[0].length;
 
@@ -409,7 +383,64 @@ public class GameGUI {
         frame.validate();
         frame.repaint();
 
+        BoardStatus.makeChange(getCurrentBoard());
         isFirstGame = false;
+    }
+
+    public static Token[][] getCurrentBoard() {
+        int rows = boardButtons.length;
+        int cols = boardButtons[0].length;
+        Token[][] currentBoard = new Token[rows][cols];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                // Get the color of the button
+                Color buttonColor = boardButtons[i][j].getBackground();
+                // Create a new Token with the color of the button
+                currentBoard[i][j] = new Token(getCharColor(buttonColor), i, j);
+            }
+        }
+        return currentBoard;
+    }
+
+    public static void updateBoard(Token[][] fixedBoard) {
+        int rows = fixedBoard.length;
+        int cols = fixedBoard[0].length;
+        boardPanel.removeAll();
+
+        boardPanel = new JPanel();
+        boardPanel.setLayout(new GridLayout(rows, cols));
+
+        boardButtons = new JButton[rows][cols]; // Added line
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                boardButtons[i][j] = new JButton(); // Added line
+                final int row = i;
+                final int col = j;
+                boardButtons[i][j].setBackground(getVisualColor(fixedBoard[i][j].getColor()));
+                boardButtons[i][j].addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        if (gameState == GameState.SETTING_UP) {
+                            // Ask for the color and set it
+                            Color chosenColor = colorChooser(frame);
+                            boardButtons[row][col].setBackground(chosenColor);
+                            BoardStatus.makeChange(getCurrentBoard());
+                        } else if (gameState == GameState.PLAYING) {
+                            // Handle the button click.
+                            ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                            boardPanel.repaint();
+                        }
+                    }
+                });
+                boardPanel.add(boardButtons[i][j]);
+            }
+        }
+        frame.add(boardPanel, BorderLayout.CENTER);
+        frame.validate();
+        boardPanel.revalidate();
+        boardPanel.repaint();
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
     }
 
     public boolean checkBoard(Token[][] board){
@@ -433,21 +464,28 @@ public class GameGUI {
         infoArea.revalidate();
         infoArea.repaint();
         if(checkEnd() == true){
-            int remainingTokens = Integer.parseInt(tokensField.getText());
-            int finalScore = Integer.parseInt(scoreField.getText());
-            if(remainingTokens == 1){
-                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
-            }else{
-                infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
-            }
-            infoArea.revalidate();
-            infoArea.repaint();
-            int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
-            if (option == JOptionPane.YES_OPTION) {
-                // El jugador quiere guardar el resultado del juego.
-                FileHandler.writeMovesToFile(infoArea.getText());
-            } 
+            endGame();
         }
+    }
+
+    public static void endGame(){
+        int remainingTokens = Integer.parseInt(tokensField.getText());
+        int finalScore = Integer.parseInt(scoreField.getText());
+        if(remainingTokens == 0){
+            finalScore += 1000;
+        }
+        if(remainingTokens == 1){
+            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
+        }else{
+            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
+        }
+        infoArea.revalidate();
+        infoArea.repaint();
+        int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
+        if (option == JOptionPane.YES_OPTION) {
+            // El jugador quiere guardar el resultado del juego.
+            FileHandler.writeResultToFile(infoArea.getText());
+        } 
     }
 
     public static boolean checkEnd(){
@@ -518,14 +556,17 @@ public class GameGUI {
     public static void updateScoreField(int score) {
         currentScore += score; // Suma la puntuación del movimiento a `currentScore`
         scoreField.setText(String.valueOf(currentScore)); // Actualiza `scoreField` con la puntuación total
+        scoreField.repaint();
     }
     
     public static void updateTokensField(int remainingTokens) {
         tokensField.setText(String.valueOf(remainingTokens));
+        tokensField.repaint();
     }
 
     public static void updateMovesField() {
         movimiento++;
         movesField.setText(String.valueOf(movimiento));
+        movesField.repaint();
     }
 }

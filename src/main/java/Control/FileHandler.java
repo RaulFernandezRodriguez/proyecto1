@@ -1,13 +1,11 @@
 package Control;
 
-import javax.swing.*;
-
 import Model.Token;
 import Model.Main;
 
+import javax.swing.*;
 import java.io.*;
 import java.util.Scanner;
-import java.awt.*;
 
 public class FileHandler {
     public static void saveGameToFile(Token[][] board, File file) {
@@ -22,7 +20,15 @@ public class FileHandler {
             JOptionPane.showMessageDialog(null, "Error saving game: " + e.getMessage());
         }
     }
-    
+
+    public static void writeResultToFile(String gameResult) {
+        File file = new File("moves.txt");
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.print(gameResult);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static Token[][] loadGameFromFile(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -32,15 +38,6 @@ public class FileHandler {
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null, "Error loading game: " + e.getMessage());
             return null;
-        }
-    }
-
-    public static void writeMovesToFile(String gameResult) {
-        File file = new File("moves.txt");
-        try (PrintWriter writer = new PrintWriter(file)) {
-            writer.print(gameResult);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         }
     }
 
