@@ -105,7 +105,7 @@ public class GameGUI {
                 if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
                     File file = fileChooser.getSelectedFile();
                     Token[][] board = FileHandler.loadGameFromFile(file);
-                    updateBoard(board);
+                    playboard(board);
                 }   
             }
         });
@@ -173,31 +173,63 @@ public class GameGUI {
         });
         buttonPanel.add(redoItem);
 
-        if(isFirstGame){
-            JButton startPlayingButton = new JButton("Start Playing");
-            startPlayingButton.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    // Check if the board is fully complete
-                    if(checkBoard(getCurrentBoard())){
-                        gameState = GameState.PLAYING;
-                        saveGameButton.setEnabled(false);
-                        BoardStatus.clearStacks();
-                        // If the board is fully complete, change the game state to PLAYING
-                        findSolutionItem.setEnabled(true);
-                        undoItem.setEnabled(true);
-                        redoItem.setEnabled(true);
-                    }   
-                }
-            });
-            // Add the startPlayingButton to the boardPanel
-            buttonPanel.add(startPlayingButton);
-        }
+        JButton startPlayingButton = new JButton("Start Playing");
+        startPlayingButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                // Check if the board is fully complete
+                if(checkBoard(getCurrentBoard())){
+                    gameState = GameState.PLAYING;
+                    saveGameButton.setEnabled(false);
+                    BoardStatus.clearStacks();
+                    // If the board is fully complete, change the game state to PLAYING
+                    findSolutionItem.setEnabled(true);
+                }   
+            }
+        });
+        // Add the startPlayingButton to the boardPanel
+        buttonPanel.add(startPlayingButton);
 
         findSolutionItem.setEnabled(false);
         undoItem.setEnabled(false);
         redoItem.setEnabled(false);
 
         frame.add(buttonPanel, BorderLayout.NORTH);
+
+        // Create the panel for displaying the game stats
+        JPanel gameStatsPanel = new JPanel(new GridLayout(3, 2));
+
+        gameStatsPanel.add(new JLabel("Number of moves:"));
+        movesField = new JTextField();
+        movesField.setText(String.valueOf(movimiento));
+        movesField.setEditable(false);
+        gameStatsPanel.add(movesField);
+
+        gameStatsPanel.add(new JLabel("Current total score:"));
+        scoreField = new JTextField();
+        scoreField.setEditable(false);
+        gameStatsPanel.add(scoreField);
+
+        gameStatsPanel.add(new JLabel("Remaining tokens on board:"));
+        tokensField = new JTextField();
+        tokensField.setEditable(false);
+        gameStatsPanel.add(tokensField);
+
+        infoArea = new JTextArea();
+        infoArea.setEditable(false); 
+
+        // Create a split pane and add the panels to it
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoArea, gameStatsPanel);
+        splitPane.setDividerLocation(550);
+        frame.add(splitPane, BorderLayout.SOUTH);
+        currentScore = 0;
+        scoreField.setText(String.valueOf(currentScore));
+        movimiento = 0;
+        movesField.setText(String.valueOf(movimiento));
+        splitPane.validate();
+        splitPane.repaint();
+
+        frame.revalidate();
+        frame.repaint();
     }
 
     private void play() {
@@ -208,8 +240,14 @@ public class GameGUI {
         String colsInput = JOptionPane.showInputDialog(frame, "Enter number of columns:");
         int rows = Integer.parseInt(rowsInput);
         int cols = Integer.parseInt(colsInput);
-        
 
+        currentScore = 0;
+        scoreField.setText(String.valueOf(currentScore));
+        movimiento = 1;
+        movesField.setText(String.valueOf(movimiento));
+        tokensField.setText(String.valueOf(rows * cols));
+        infoArea.setText("");
+        
         if (!isFirstGame) {
             boardPanel.removeAll();
             boardPanel.revalidate();
@@ -246,40 +284,8 @@ public class GameGUI {
         frame.validate();
         buttonPanel.revalidate();
         buttonPanel.repaint();
-
-        // Create the panel for displaying the game stats
-        JPanel gameStatsPanel = new JPanel(new GridLayout(3, 2));
-
-        gameStatsPanel.add(new JLabel("Number of moves:"));
-        movesField = new JTextField();
-        movesField.setText(String.valueOf(movimiento));
-        movesField.setEditable(false);
-        gameStatsPanel.add(movesField);
-
-        gameStatsPanel.add(new JLabel("Current total score:"));
-        scoreField = new JTextField();
-        scoreField.setEditable(false);
-        gameStatsPanel.add(scoreField);
-
-        gameStatsPanel.add(new JLabel("Remaining tokens on board:"));
-        tokensField = new JTextField();
-        tokensField.setEditable(false);
-        gameStatsPanel.add(tokensField);
-
-        infoArea = new JTextArea();
-        infoArea.setEditable(false); 
-
-        // Create a split pane and add the panels to it
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoArea, gameStatsPanel);
-        splitPane.setDividerLocation(150);
-        frame.add(splitPane, BorderLayout.SOUTH);
-        currentScore = 0;
-        scoreField.setText(String.valueOf(currentScore));
-        movimiento = 1;
-        movesField.setText(String.valueOf(movimiento));
-        tokensField.setText(String.valueOf(rows * cols));
-        splitPane.validate();
-        splitPane.repaint();
+        boardPanel.revalidate();
+        boardPanel.repaint();
 
         frame.validate();
         frame.repaint();
@@ -332,6 +338,7 @@ public class GameGUI {
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
+                            boardPanel.repaint();
                         }
                     }
                 });
@@ -348,20 +355,36 @@ public class GameGUI {
 
     public void playboard(Token[][] board){
         gameState = GameState.SETTING_UP;
-        // Set the layout of the boardPanel to match the size of the board
-        boardPanel.setLayout(new GridLayout(board.length, board[0].length));
+        saveGameButton.setEnabled(true);
+        int rows = board.length;
+        int cols = board[0].length;
 
         // Remove all existing buttons from the boardPanel
-        boardPanel.removeAll();
+        if(!isFirstGame){
+            boardPanel.removeAll();
+            boardPanel.revalidate();
+            boardPanel.repaint();
+        }
 
-        for (int i = 0; i < board.length; i++) {
-            for (int j = 0; j < board[i].length; j++) {
-                JButton button = new JButton();
-                button.setBackground(getVisualColor(board[i][j].getColor()));
+        currentScore = 0;
+        scoreField.setText(String.valueOf(currentScore));
+        movimiento = 1;
+        movesField.setText(String.valueOf(movimiento));
+        tokensField.setText(String.valueOf(rows * cols));
+        infoArea.setText("");
+
+        boardPanel = new JPanel();
+        boardPanel.setLayout(new GridLayout(rows, cols));
+
+        boardButtons = new JButton[rows][cols]; 
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                boardButtons[i][j] = new JButton();
+                boardButtons[i][j].setBackground(getVisualColor(board[i][j].getColor())); // Added line
                 final int row = i;
                 final int col = j;
-                button.addActionListener(new ActionListener() {
-                    public void actionPerformed(ActionEvent e){
+                boardButtons[i][j].addActionListener(new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
                         if (gameState == GameState.SETTING_UP) {
                             // Ask for the color and set it
                             Color chosenColor = colorChooser(frame);
@@ -373,13 +396,20 @@ public class GameGUI {
                         }
                     }
                 });
-                // Add the button to the boardPanel
-                boardPanel.add(button);
+                boardPanel.add(boardButtons[i][j]);
             }
         }
-        // Revalidate and repaint the boardPanel to reflect the new buttons
+        frame.add(boardPanel, BorderLayout.CENTER);
+        frame.validate();
+        buttonPanel.revalidate();
+        buttonPanel.repaint();
         boardPanel.revalidate();
         boardPanel.repaint();
+
+        frame.validate();
+        frame.repaint();
+
+        isFirstGame = false;
     }
 
     public boolean checkBoard(Token[][] board){
@@ -432,15 +462,12 @@ public class GameGUI {
                     groups.add(GenerateMoves.formGroup(board, visited, i, j, board.length - 1, board[0].length - 1));
             }
         }
-        Iterator<LinkedList<Token>> groupIterator = groups.iterator();
-        while (groupIterator.hasNext()) {
-            LinkedList<Token> currentGroup = groupIterator.next();
-            int groupLength = currentGroup.size();
-            if (groupLength >= 2) {
-                return false;
+        for (LinkedList<Token> group : groups) {
+            if (group.size() >= 2) {
+                return false; // Game is not ended, there are still possible moves
             }
         }
-        return true;
+        return true; // Game is ended, there are no more possible moves
     }
 
     public static Color getVisualColor(char boardColor){
