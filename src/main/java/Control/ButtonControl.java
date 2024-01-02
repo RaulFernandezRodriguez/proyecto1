@@ -4,20 +4,33 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import javax.swing.JOptionPane;
+
 import Model.GenerateMoves;
 import Model.MovesTree;
 import Model.Result;
 import Model.Token;
 import View.GameGUI;
 
+/**
+ * This class handles the click of a button in the panel.
+ */
 public class ButtonControl {
+    /**
+     * Handles the button click event by performing the necessary actions specified in the first assigment.
+     * 
+     * @param board The game board represented as a 2D array of tokens.
+     * @param row The row index of the clicked button.
+     * @param col The column index of the clicked button.
+     */
     public static void handleButtonClick(Token[][] board, int row, int col){
         boolean[][] visited = new boolean[board.length][board[0].length];
         for (boolean[] fila : visited)
             Arrays.fill(fila, false);
         LinkedList<Token> group = GenerateMoves.formGroup(board, visited, row, col, board.length - 1, board[0].length - 1);
         if(group.size() == 1){
-            return ;
+            JOptionPane.showMessageDialog(null, "No se puede eliminar: la ficha seleccionada no forma un grupo.", "Error", JOptionPane.ERROR_MESSAGE);
+            return ; // Ignore the click has it does not form a group
         }
         Iterator<Token> iterator = group.iterator();
         Token firstToken = group.get(0);

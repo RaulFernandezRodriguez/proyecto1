@@ -7,7 +7,18 @@ import javax.swing.*;
 import java.io.*;
 import java.util.Scanner;
 
+/**
+ * The FileHandler class provides methods for saving and loading game data to/from files.
+ * Follows the desing pattern stablished in the first assignment.
+ */
 public class FileHandler {
+    
+    /**
+     * Saves the game board to a file.
+     * 
+     * @param board the game board represented by a 2D array of tokens
+     * @param file the file to save the game to
+     */
     public static void saveGameToFile(Token[][] board, File file) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(file))) {
             for (int i = 0; i < board.length; i++) {
@@ -21,6 +32,11 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Writes the game result to a file.
+     * 
+     * @param gameResult the result of the game
+     */
     public static void writeResultToFile(String gameResult) {
         File file = new File("moves.txt");
         try (PrintWriter writer = new PrintWriter(file)) {
@@ -30,6 +46,12 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Loads the game board from a file.
+     * 
+     * @param file the file to load the game from
+     * @return the loaded game board represented by a 2D array of tokens
+     */
     public static Token[][] loadGameFromFile(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             Scanner scanner = new Scanner(reader);
@@ -40,23 +62,4 @@ public class FileHandler {
             return null;
         }
     }
-
-    // public static void loadGameFromFile(JPanel boardPanel, File file, String[] colors) {
-    //     try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-    //         String line = reader.readLine();
-    //         int rows = line.length();
-    //         int cols = line.length();
-    
-    //         boardPanel.removeAll();
-    //         boardPanel.setLayout(new GridLayout(rows, cols));
-    
-    //         for (char color : line.toCharArray()) {
-    //             JComboBox<String> cell = new JComboBox<>(colors);
-    //             cell.setSelectedItem(String.valueOf(color));
-    //             boardPanel.add(cell);
-    //         }
-    //     } catch (IOException e) {
-    //         JOptionPane.showMessageDialog(null, "Error loading game: " + e.getMessage());
-    //     }
-    // }
 }

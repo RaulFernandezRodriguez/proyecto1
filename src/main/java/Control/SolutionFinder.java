@@ -11,8 +11,24 @@ import Model.Result;
 import Model.SearchBestRoute;
 import Model.Token;
 
-public class SolutionFinder extends SwingWorker<String, Void> {
+/**
+ * This class represents a SolutionFinder, which is responsible for finding the best solution for a given game board.
+ * It extends the SwingWorker class and implements the doInBackground method for background processing.
+ */
+public class SolutionFinder extends SwingWorker<Void, Void> {
+    private final Token[][] board;
 
+    public SolutionFinder(Token[][] board) {
+        this.board = board;
+    }
+
+      /**
+     * Finds the best solution for the given game board.
+     * It generates all possible moves, searches for the best route,
+     * and displays the results to the user.
+     *
+     * @param board The game board represented as a 2D array of tokens.
+     */
     public static void findSolution(Token[][] board) {
         MovesTree original = new MovesTree(board);
         GenerateMoves.searchMoves(board, original);
@@ -49,9 +65,8 @@ public class SolutionFinder extends SwingWorker<String, Void> {
     }
 
     @Override
-    protected String doInBackground() throws Exception {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'doInBackground'");
+    protected Void doInBackground() throws Exception {
+        findSolution(board);
+        return null;
     }
-
 }
