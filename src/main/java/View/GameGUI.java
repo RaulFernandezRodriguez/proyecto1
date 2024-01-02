@@ -6,16 +6,12 @@ import Control.FileHandler;
 import Control.SolutionFinder;
 import Model.Token;
 import Model.Result;
-import Model.GenerateMoves;
 import Model.MovesTree;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
 
 public class GameGUI {
     private static JFrame frame;
@@ -127,11 +123,12 @@ public class GameGUI {
         undoItem.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if(gameState == GameState.SETTING_UP){
-                    Token[][] newStatus = BoardStatus.undoChange();
+                    Token[][] newStatus = BoardStatus.undoChange(getCurrentBoard());
                     if(newStatus != null)
                         updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
-                    BoardStatus newStatus = BoardStatus.undoMove();
+                    BoardStatus currentStatus = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
+                    BoardStatus newStatus = BoardStatus.undoMove(currentStatus);
                     if(newStatus.getBoard() != null)
                         updateBoard(newStatus.getBoard());
                         boardPanel.repaint();
@@ -170,17 +167,19 @@ public class GameGUI {
                         updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
                     BoardStatus newStatus = BoardStatus.redoMove();
-                    if(newStatus.getBoard() != null)
-                        updateBoard(newStatus.getBoard());
-                    if(newStatus.getDataTrack() != null){
-                        infoArea.append(newStatus.getDataTrack());
-                        tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
-                        scoreField.setText(String.valueOf(newStatus.getScore()));
-                        movimiento = newStatus.getMoves();
-                        movesField.setText(String.valueOf(movimiento)); 
-                        movesField.repaint();
-                        tokensField.repaint();
-                        scoreField.repaint();
+                    if(newStatus != null){
+                        if(newStatus.getBoard() != null)
+                            updateBoard(newStatus.getBoard());
+                        if(newStatus.getDataTrack() != null){
+                            infoArea.append(newStatus.getDataTrack());
+                            tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
+                            scoreField.setText(String.valueOf(newStatus.getScore()));
+                            movimiento = newStatus.getMoves();
+                            movesField.setText(String.valueOf(movimiento)); 
+                            movesField.repaint();
+                            tokensField.repaint();
+                            scoreField.repaint();
+                        }
                     }
                 }
             }
@@ -202,11 +201,12 @@ public class GameGUI {
             public void actionPerformed(ActionEvent e) {
                 // Check if the board is fully complete
                 if(checkBoard(getCurrentBoard())){
+                    // Check if the board is even playable
+                    ButtonControl.checkEnd(getCurrentBoard());
                     gameState = GameState.PLAYING;
                     saveGameButton.setEnabled(false);
                     BoardStatus.clearStacks();
-                    BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), "", Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
-                    BoardStatus.makeMove(previousBoard);
+                    storeMove();
                     // If the board is fully complete, change the game state to PLAYING
                     findSolutionItem.setEnabled(true);
                     endGameButton.setEnabled(true);
@@ -215,6 +215,7 @@ public class GameGUI {
         });
         // Add the startPlayingButton to the boardPanel
         mainMenu.add(startPlayingButton);
+        startPlayingButton.setEnabled(false);
 
         frame.add(buttonPanel, BorderLayout.NORTH);
 
@@ -258,7 +259,8 @@ public class GameGUI {
     private void play() {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
-
+        startPlayingButton.setEnabled(true);
+        BoardStatus.clearStacks();
 
         undoItem.setEnabled(true);
         redoItem.setEnabled(true);
@@ -300,8 +302,6 @@ public class GameGUI {
                             boardButtons[row][col].setBackground(chosenColor);
                         } else if (gameState == GameState.PLAYING) {
                             // Handle the button click.
-                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
-                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                             boardPanel.repaint();
                         }
@@ -326,7 +326,8 @@ public class GameGUI {
     public void playboard(Token[][] board){
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
-        
+        startPlayingButton.setEnabled(true);
+        BoardStatus.clearStacks();
 
         undoItem.setEnabled(true);
         redoItem.setEnabled(true);
@@ -366,8 +367,6 @@ public class GameGUI {
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
                         } else if (gameState == GameState.PLAYING) {
-                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
-                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                             boardPanel.repaint();
                         }
@@ -428,8 +427,6 @@ public class GameGUI {
                             Color chosenColor = colorChooser(frame);
                             boardButtons[row][col].setBackground(chosenColor);
                         } else if (gameState == GameState.PLAYING) {
-                            BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
-                            BoardStatus.makeMove(previousBoard);
                             ButtonControl.handleButtonClick(getCurrentBoard(), row, col);
                             boardPanel.repaint();
                         }
@@ -463,13 +460,9 @@ public class GameGUI {
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.\n");  
         }else{
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" puntos.\n");  
-        }
+        }  
         infoArea.revalidate();
         infoArea.repaint();
-        int remainingTokens = Integer.parseInt(tokensField.getText());
-        if(checkEnd() == true || remainingTokens == 0 || remainingTokens == 1){
-            endGame();
-        }
     }
 
     public static void endGame(){
@@ -490,26 +483,6 @@ public class GameGUI {
             // El jugador quiere guardar el resultado del juego.
             FileHandler.writeResultToFile(infoArea.getText());
         } 
-    }
-
-    public static boolean checkEnd(){
-        Token[][] board = getCurrentBoard();
-        ArrayList<LinkedList<Token>> groups = new ArrayList<>();
-        boolean[][] visited = new boolean[board.length][board[0].length];
-        for (boolean[] fila : visited)
-            Arrays.fill(fila, false);
-        for (int i = board.length - 1; i >= 0; i--) {
-            for (int j = 0; j < board[0].length; j++) {
-                if (visited[i][j] == false && board[i][j].valid())
-                    groups.add(GenerateMoves.formGroup(board, visited, i, j, board.length - 1, board[0].length - 1));
-            }
-        }
-        for (LinkedList<Token> group : groups) {
-            if (group.size() >= 2) {
-                return false; // Game is not ended, there are still possible moves
-            }
-        }
-        return true; // Game is ended, there are no more possible moves
     }
 
     public static Color getVisualColor(char boardColor){
@@ -578,5 +551,10 @@ public class GameGUI {
         String text = infoArea.getText();
         String[] lines = text.split("\n");
         return lines[lines.length - 1];
+    }
+
+    public static void storeMove(){
+        BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
+        BoardStatus.makeMove(previousBoard);
     }
 }

@@ -55,7 +55,7 @@ public class BoardStatus {
      * @return The game board.
      */
     public Token[][] getBoard() {
-        return board;
+        return this.board;
     }
 
     /**
@@ -64,7 +64,7 @@ public class BoardStatus {
      * @return The total score.
      */
     public int getScore() {
-        return totalScore;
+        return this.totalScore;
     }
 
     /**
@@ -73,11 +73,11 @@ public class BoardStatus {
      * @return The data track.
      */
     public String getDataTrack() {
-        return dataTrack;
+        return this.dataTrack;
     }
 
     public int getMoves() {
-        return moves;
+        return this.moves;
     }
 
     /**
@@ -95,11 +95,12 @@ public class BoardStatus {
      * 
      * @return The previous game board.
      */
-    public static Token[][] undoChange() {
+    public static Token[][] undoChange(Token[][] currentBoard) {
         if (!undoStack.isEmpty()) {
+            redoStack.push(new BoardStatus(currentBoard));
+
             BoardStatus previous = undoStack.pop();
             Token[][] newBoard = previous.getBoard();         
-            redoStack.push(new BoardStatus(newBoard));
             return newBoard;
         }
         return null;
@@ -114,7 +115,6 @@ public class BoardStatus {
         if (!redoStack.isEmpty()) {
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
-            undoStack.push(new BoardStatus(newBoard));
             return newBoard;
         }
         return null;
@@ -135,13 +135,18 @@ public class BoardStatus {
      * 
      * @return The previous board status.
      */
-    public static BoardStatus undoMove() {
+    public static BoardStatus undoMove(BoardStatus currentStatus) {
         if (!undoStack.isEmpty()) {
+            Token[][] currentBoard = currentStatus.getBoard();
+            int currentScore = currentStatus.getScore();
+            String currentDataTrack = currentStatus.getDataTrack();
+            redoStack.push(new BoardStatus(currentBoard, currentDataTrack, currentScore, moves));
+
             BoardStatus previous = undoStack.pop();
             Token[][] newBoard = previous.getBoard();
             int newScore = previous.getScore();      
             String newDataTrack = previous.getDataTrack();     
-            redoStack.push(new BoardStatus(newBoard, newDataTrack, newScore, moves));
+
             return new BoardStatus(newBoard, newDataTrack, newScore, moves);
         }
         return null;
@@ -154,11 +159,12 @@ public class BoardStatus {
      */
     public static BoardStatus redoMove() {
         if (!redoStack.isEmpty()) {
+            // Now pop the next state from the redo stack
             BoardStatus next = redoStack.pop();
             Token[][] newBoard = next.getBoard();
             int newScore = next.getScore();      
             String newDataTrack = next.getDataTrack();     
-            undoStack.push(new BoardStatus(newBoard, newDataTrack, newScore, moves));
+    
             return new BoardStatus(newBoard, newDataTrack, newScore, moves);
         }
         return null;

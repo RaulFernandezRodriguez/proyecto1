@@ -69,4 +69,5 @@ public class SolutionFinder extends SwingWorker<Void, Void> {
         findSolution(board);
         return null;
     }
+
 }

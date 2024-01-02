@@ -1,5 +1,6 @@
 package Control;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -32,6 +33,7 @@ public class ButtonControl {
             JOptionPane.showMessageDialog(null, "No se puede eliminar: la ficha seleccionada no forma un grupo.", "Error", JOptionPane.ERROR_MESSAGE);
             return ; // Ignore the click has it does not form a group
         }
+        GameGUI.storeMove();
         Iterator<Token> iterator = group.iterator();
         Token firstToken = group.get(0);
         char groupColor = firstToken.getColor();
@@ -59,5 +61,26 @@ public class ButtonControl {
         GameGUI.updateScoreField(score.getPoints());
         GameGUI.updateTokensField(MovesTree.getRemainingTokens(board));
         GameGUI.updateMovesField();
+        checkEnd(board);
     }
+
+    public static void checkEnd(Token[][] board){
+        ArrayList<LinkedList<Token>> groups = new ArrayList<>();
+        boolean[][] visited = new boolean[board.length][board[0].length];
+        for (boolean[] fila : visited)
+            Arrays.fill(fila, false);
+        for (int i = board.length - 1; i >= 0; i--) {
+            for (int j = 0; j < board[0].length; j++) {
+                if (visited[i][j] == false && board[i][j].valid())
+                    groups.add(GenerateMoves.formGroup(board, visited, i, j, board.length - 1, board[0].length - 1));
+            }
+        }
+        for (LinkedList<Token> group : groups) {
+            if (group.size() >= 2) {
+                return ; // Game is not ended, there are still possible moves
+            }
+        }
+        GameGUI.endGame(); // Game is ended, there are no more possible moves
+    }
+
 }
