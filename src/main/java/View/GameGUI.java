@@ -13,6 +13,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
 
+/**
+ * GameGUI is the main class for the GUI of the game.
+ * It sets up the game state and initializes the game frame.
+ */
 public class GameGUI {
     private static JFrame frame;
     static private JPanel boardPanel;
@@ -40,12 +44,19 @@ public class GameGUI {
 
     private static GameState gameState = GameState.SETTING_UP;
 
+     /**
+     * Enum for the different states of the game.
+     */
     public enum GameState {
         MENU,
         SETTING_UP,
         PLAYING,
     }
 
+    /**
+     * The main method that starts the game GUI.
+     * @param args command line arguments
+     */
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -54,6 +65,10 @@ public class GameGUI {
         });
     }
 
+    /**
+     * Constructor for the GameGUI class.
+     * It sets the initial game state to MENU and initializes the game frame.
+     */
     public GameGUI() {
         gameState = GameState.MENU;
         frame = new JFrame("Game");
@@ -132,22 +147,14 @@ public class GameGUI {
                     if(newStatus.getBoard() != null)
                         updateBoard(newStatus.getBoard());
                         boardPanel.repaint();
+                        frame.repaint();
                     if(newStatus.getDataTrack() != null){
-                        String currentText = infoArea.getText();
-                        String[] lines = currentText.split("\n");
-                        StringBuilder newText = new StringBuilder();
-                        if(lines.length == 1){
-                            newText.append("");
-                        } else{
-                            for (int i = 0; i < lines.length - 1; i++) {
-                                newText.append(lines[i]).append("\n");
-                            }
-                        }
-                        infoArea.setText(newText.toString());
+                        infoArea.setText(newStatus.getDataTrack());
+                        infoArea.append("\n");
                         tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
                         scoreField.setText(String.valueOf(newStatus.getScore()));
                         movimiento = newStatus.getMoves();
-                        movesField.setText(String.valueOf(movimiento));
+                        movesField.setText(String.valueOf(--movimiento));
                         tokensField.repaint();
                         scoreField.repaint();
                         movesField.repaint();
@@ -170,8 +177,11 @@ public class GameGUI {
                     if(newStatus != null){
                         if(newStatus.getBoard() != null)
                             updateBoard(newStatus.getBoard());
+                            boardPanel.repaint();
+                            frame.repaint();
                         if(newStatus.getDataTrack() != null){
                             infoArea.append(newStatus.getDataTrack());
+                            infoArea.append("\n");
                             tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
                             scoreField.setText(String.valueOf(newStatus.getScore()));
                             movimiento = newStatus.getMoves();
@@ -256,6 +266,11 @@ public class GameGUI {
         frame.repaint();
     }
 
+    /**
+     * This method is used to start the game.
+     * It sets the game state to SETTING_UP, enables the game control buttons, 
+     * clears the undo/redo stacks, and prompts the user to enter the number of rows.
+     */
     private void play() {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
@@ -323,6 +338,10 @@ public class GameGUI {
         isFirstGame = false;
     }
 
+    /**
+     * Play a game using a given board. Used for the load game functionality.
+     * @param board
+     */
     public void playboard(Token[][] board){
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
@@ -388,6 +407,9 @@ public class GameGUI {
         isFirstGame = false;
     }
 
+    /**
+     * Returns the current game board.
+     */
     public static Token[][] getCurrentBoard() {
         int rows = boardButtons.length;
         int cols = boardButtons[0].length;
@@ -403,6 +425,10 @@ public class GameGUI {
         return currentBoard;
     }
 
+    /**
+     * Updates the game board.
+     * @param fixedBoard the new game board
+     */
     public static void updateBoard(Token[][] fixedBoard) {
         int rows = fixedBoard.length;
         int cols = fixedBoard[0].length;
@@ -443,6 +469,11 @@ public class GameGUI {
         buttonPanel.repaint();
     }
 
+    /**
+     * Checks if the board is fully complete.
+     * @param board the game board
+     * @return true if the board is fully complete, false otherwise
+     */
     public boolean checkBoard(Token[][] board){
         for (int i = 0; i < board.length; i++) {
             for (int j = 0; j < board[0].length; j++) {
@@ -455,6 +486,10 @@ public class GameGUI {
         return true;
     }
 
+    /**
+     * Displays the result of a move.
+     * @param data the result of the move
+     */
     public static void showResult(Result data){
         if(data.getPoints() == 1){
             infoArea.append("Movimiento "+(movimiento)+" en ("+data.getXPosition()+", "+data.getYPosition()+"): eliminó "+data.getGroupLength()+" fichas de color "+data.getGroupColor()+" y obtuvo "+data.getPoints()+" punto.\n");  
@@ -465,6 +500,10 @@ public class GameGUI {
         infoArea.repaint();
     }
 
+    /**
+     * Checks if the game has ended.
+     * @param board the game board
+     */
     public static void endGame(){
         int remainingTokens = Integer.parseInt(tokensField.getText());
         int finalScore = Integer.parseInt(scoreField.getText());
@@ -472,9 +511,9 @@ public class GameGUI {
             finalScore += 1000;
         }
         if(remainingTokens == 1){
-            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.");
+            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" ficha.\n");
         }else{
-            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
+            infoArea.append("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.\n");            
         }
         infoArea.revalidate();
         infoArea.repaint();
@@ -484,6 +523,7 @@ public class GameGUI {
             FileHandler.writeResultToFile(infoArea.getText());
         } 
     }
+
 
     public static Color getVisualColor(char boardColor){
         if(boardColor == 'R'){
@@ -498,6 +538,7 @@ public class GameGUI {
         }
     }
 
+
     public static char getCharColor(Color boardColor){
         if(boardColor == Color.RED){
             return 'R';
@@ -510,6 +551,11 @@ public class GameGUI {
         }
     }
 
+    /**
+     * Displays a color chooser dialog.
+     * @param frame the frame to display the dialog in
+     * @return the color chosen by the user
+     */
     public static Color colorChooser(JFrame frame){
         Object[] options = {"Blue", "Red", "Green", "Blank"};
         int n = JOptionPane.showOptionDialog(frame,
@@ -531,8 +577,7 @@ public class GameGUI {
     }
     
     public static void updateScoreField(int score) {
-        currentScore += score; // Suma la puntuación del movimiento a `currentScore`
-        scoreField.setText(String.valueOf(currentScore)); // Actualiza `scoreField` con la puntuación total
+        scoreField.setText(String.valueOf(Integer.parseInt(scoreField.getText()) + score)); // Actualiza `scoreField` con la puntuación total
         scoreField.repaint();
     }
     

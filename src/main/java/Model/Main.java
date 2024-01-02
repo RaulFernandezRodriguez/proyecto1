@@ -1,6 +1,9 @@
 package Model;
 
 import java.util.Scanner;
+
+import View.GameGUI;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -21,6 +24,12 @@ public class Main {
      * @param args The command line arguments.
      */
     public static void main(String[] args) {
+        // Ejecuta la interfaz gráfica en el hilo de despacho de eventos
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                new GameGUI();  // Reemplaza GameGUI con el nombre de tu clase de interfaz gráfica
+            }
+        });
         Scanner scanner = new Scanner(System.in);
         games = Integer.parseInt(scanner.nextLine());
         if (games <= 0) {
