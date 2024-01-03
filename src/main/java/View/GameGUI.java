@@ -595,6 +595,9 @@ public class GameGUI {
     public static String getLastLine() {
         String text = infoArea.getText();
         String[] lines = text.split("\n");
+        if(lines.length == 1){
+            return " ";
+        }
         return lines[lines.length - 1];
     }
 
