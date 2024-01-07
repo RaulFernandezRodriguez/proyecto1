@@ -594,17 +594,8 @@ public class GameGUI {
         movesField.repaint();
     }
 
-    public static String getLastLine() {
-        String text = infoArea.getText();
-        String[] lines = text.split("\n");
-        if(lines.length == 1){
-            return " ";
-        }
-        return lines[lines.length - 1];
-    }
-
     public static void storeMove(){
-        BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
+        BoardStatus previousBoard = new BoardStatus(getCurrentBoard(), infoArea.getText(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
         BoardStatus.makeMove(previousBoard);
     }
 }
