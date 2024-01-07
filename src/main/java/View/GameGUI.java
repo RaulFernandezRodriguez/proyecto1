@@ -35,7 +35,6 @@ public class GameGUI {
     private static JButton[][] boardButtons; // Modified line
     private static JTextArea infoArea;
     public static int movimiento = 1;
-    private static boolean isFirstGame = true;
     public static int currentScore;
 
     private static JTextField movesField;
@@ -100,7 +99,7 @@ public class GameGUI {
             public void actionPerformed(ActionEvent e) {
                 JFileChooser fileChooser = new JFileChooser();
                 if (fileChooser.showSaveDialog(frame) == JFileChooser.APPROVE_OPTION && checkBoard(getCurrentBoard())) {
-                    File file = new File("game.txt");
+                    File file = fileChooser.getSelectedFile();
                     FileHandler.saveGameToFile(getCurrentBoard(), file);
                 }
             }
@@ -142,7 +141,7 @@ public class GameGUI {
                     if(newStatus != null)
                         updateBoard(newStatus);
                 } else if(gameState == GameState.PLAYING){
-                    BoardStatus currentStatus = new BoardStatus(getCurrentBoard(), getLastLine(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
+                    BoardStatus currentStatus = new BoardStatus(getCurrentBoard(), infoArea.getText(), Integer.parseInt(scoreField.getText()), Integer.parseInt(movesField.getText()));
                     BoardStatus newStatus = BoardStatus.undoMove(currentStatus);
                     if(newStatus.getBoard() != null)
                         updateBoard(newStatus.getBoard());
@@ -160,6 +159,10 @@ public class GameGUI {
                         movesField.repaint();
                     }
                 } 
+                boardPanel.repaint();
+                boardPanel.revalidate();
+                frame.repaint();
+                frame.revalidate();
             }
         });
         editMenu.add(undoItem);        
@@ -180,8 +183,7 @@ public class GameGUI {
                             boardPanel.repaint();
                             frame.repaint();
                         if(newStatus.getDataTrack() != null){
-                            infoArea.append(newStatus.getDataTrack());
-                            infoArea.append("\n");
+                            infoArea.setText(newStatus.getDataTrack());
                             tokensField.setText(String.valueOf(MovesTree.getRemainingTokens(newStatus.getBoard())));
                             scoreField.setText(String.valueOf(newStatus.getScore()));
                             movimiento = newStatus.getMoves();
@@ -192,6 +194,10 @@ public class GameGUI {
                         }
                     }
                 }
+                boardPanel.repaint();
+                boardPanel.revalidate();
+                frame.repaint();
+                frame.revalidate();
             }
         });
         editMenu.add(redoItem);
@@ -220,6 +226,7 @@ public class GameGUI {
                     // If the board is fully complete, change the game state to PLAYING
                     findSolutionItem.setEnabled(true);
                     endGameButton.setEnabled(true);
+                    startPlayingButton.setEnabled(false);
                 }   
             }
         });
@@ -262,6 +269,9 @@ public class GameGUI {
         splitPane.validate();
         splitPane.repaint();
 
+        boardPanel = new JPanel();
+        frame.add(boardPanel, BorderLayout.CENTER);
+
         frame.revalidate();
         frame.repaint();
     }
@@ -275,6 +285,8 @@ public class GameGUI {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
         startPlayingButton.setEnabled(true);
+        findSolutionItem.setEnabled(false);
+        endGameButton.setEnabled(false);
         BoardStatus.clearStacks();
 
         undoItem.setEnabled(true);
@@ -292,13 +304,9 @@ public class GameGUI {
         tokensField.setText(String.valueOf(rows * cols));
         infoArea.setText("");
         
-        if (!isFirstGame) {
-            boardPanel.removeAll();
-            boardPanel.revalidate();
-            boardPanel.repaint();
-        }
 
-        boardPanel = new JPanel();
+        boardPanel.removeAll();
+        //boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(rows, cols));
 
         boardButtons = new JButton[rows][cols]; // Added line
@@ -326,16 +334,14 @@ public class GameGUI {
             }
         }
         frame.add(boardPanel, BorderLayout.CENTER);
-        frame.validate();
         buttonPanel.revalidate();
         buttonPanel.repaint();
         boardPanel.revalidate();
         boardPanel.repaint();
 
-        frame.validate();
+        frame.revalidate();
         frame.repaint();
         
-        isFirstGame = false;
     }
 
     /**
@@ -346,6 +352,8 @@ public class GameGUI {
         gameState = GameState.SETTING_UP;
         saveGameButton.setEnabled(true);
         startPlayingButton.setEnabled(true);
+        findSolutionItem.setEnabled(false);
+        endGameButton.setEnabled(false);
         BoardStatus.clearStacks();
 
         undoItem.setEnabled(true);
@@ -354,13 +362,6 @@ public class GameGUI {
         int rows = board.length;
         int cols = board[0].length;
 
-        // Remove all existing buttons from the boardPanel
-        if(!isFirstGame){
-            boardPanel.removeAll();
-            boardPanel.revalidate();
-            boardPanel.repaint();
-        }
-
         currentScore = 0;
         scoreField.setText(String.valueOf(currentScore));
         movimiento = 1;
@@ -368,7 +369,8 @@ public class GameGUI {
         tokensField.setText(String.valueOf(rows * cols));
         infoArea.setText("");
 
-        boardPanel = new JPanel();
+        boardPanel.removeAll();
+        //boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(rows, cols));
 
         boardButtons = new JButton[rows][cols]; 
@@ -395,16 +397,14 @@ public class GameGUI {
             }
         }
         frame.add(boardPanel, BorderLayout.CENTER);
-        frame.validate();
         buttonPanel.revalidate();
         buttonPanel.repaint();
         boardPanel.revalidate();
         boardPanel.repaint();
 
-        frame.validate();
+        frame.revalidate();
         frame.repaint();
 
-        isFirstGame = false;
     }
 
     /**
@@ -434,7 +434,7 @@ public class GameGUI {
         int cols = fixedBoard[0].length;
         boardPanel.removeAll();
 
-        boardPanel = new JPanel();
+        //boardPanel = new JPanel();
         boardPanel.setLayout(new GridLayout(rows, cols));
 
         boardButtons = new JButton[rows][cols]; // Added line
@@ -462,11 +462,9 @@ public class GameGUI {
             }
         }
         frame.add(boardPanel, BorderLayout.CENTER);
-        frame.validate();
+
         boardPanel.revalidate();
         boardPanel.repaint();
-        buttonPanel.revalidate();
-        buttonPanel.repaint();
     }
 
     /**
@@ -520,8 +518,12 @@ public class GameGUI {
         int option = JOptionPane.showConfirmDialog(null, "¿Quieres guardar el resultado del juego en un archivo de texto?", "Guardar resultado", JOptionPane.YES_NO_OPTION);
         if (option == JOptionPane.YES_OPTION) {
             // El jugador quiere guardar el resultado del juego.
-            FileHandler.writeResultToFile(infoArea.getText());
-        } 
+            JFileChooser fileChooser = new JFileChooser();
+            if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                FileHandler.writeResultToFile(infoArea.getText(), fileToSave);
+            }
+        }
     }
 
 

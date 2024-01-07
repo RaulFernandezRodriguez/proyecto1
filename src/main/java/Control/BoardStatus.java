@@ -3,6 +3,7 @@ package Control;
 import java.util.Stack;
 
 import Model.Token;
+import View.GameGUI;
 
 
 /**
@@ -147,6 +148,7 @@ public class BoardStatus {
             int newScore = previous.getScore();      
             String newDataTrack = previous.getDataTrack();     
 
+            GameGUI.updateBoard(newBoard);
             return new BoardStatus(newBoard, newDataTrack, newScore, moves);
         }
         return null;
@@ -165,6 +167,7 @@ public class BoardStatus {
             int newScore = next.getScore();      
             String newDataTrack = next.getDataTrack();     
     
+            GameGUI.updateBoard(newBoard);
             return new BoardStatus(newBoard, newDataTrack, newScore, moves);
         }
         return null;

@@ -37,9 +37,8 @@ public class FileHandler {
      * 
      * @param gameResult the result of the game
      */
-    public static void writeResultToFile(String gameResult) {
-        File file = new File("moves.txt");
-        try (PrintWriter writer = new PrintWriter(file)) {
+    public static void writeResultToFile(String gameResult, File resultFile) {
+        try (PrintWriter writer = new PrintWriter(resultFile)) {
             writer.print(gameResult);
         } catch (FileNotFoundException e) {
             e.printStackTrace();

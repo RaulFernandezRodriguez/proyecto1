@@ -128,6 +128,8 @@ public class Main {
      * @param path The path of the best moves.
      */
     public static void printResult(ArrayList<MovesTree> path) {
+        if(actualGame != 0)
+            System.out.print("\n");
         System.out.println("Juego "+actualGame+":");        
         int finalScore = 0;
         Iterator<MovesTree> pathIterator = path.iterator();
@@ -156,7 +158,6 @@ public class Main {
         }else{
             System.out.println("Puntuación final: "+finalScore+", quedando "+remainingTokens+" fichas.");            
         }
-        if(actualGame != games)
-            System.out.print("\n");
+        
     }
 }   
